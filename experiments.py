@@ -39,5 +39,16 @@ turbine = BayesianNetwork(
     [temperature_node, wind_speed_node, torque_node, power_node]
 )
 
-print(torque_node.conditional_pdf(10, {'temperature': 90, 'wind_speed': 30}))
-print(power_node.conditional_pdf(10, {'torque': 10}))
+print(turbine.joint_pdf(
+    **{'temperature': 25, 'wind_speed': 25, 'torque': 25, 'power': 25}
+))
+
+factors = turbine._get_joint_factorisation()
+
+print(factors[0].scope)
+print(factors[0].pdf(temperature=25))
+# turbine.infer(
+#     query_variable='power',
+#     range=(0, 100),
+#     evidence={'temperature': 25, 'wind_speed': 25},
+# )

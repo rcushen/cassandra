@@ -1,3 +1,7 @@
+# Local files
+.vscode/
+.pytest_cache/
+
 # Cached files
 */__pycache__/
 

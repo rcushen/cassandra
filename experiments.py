@@ -44,11 +44,3 @@ print(turbine.joint_pdf(
 ))
 
 factors = turbine._get_joint_factorisation()
-
-print(factors[0].scope)
-print(factors[0].pdf(temperature=25))
-# turbine.infer(
-#     query_variable='power',
-#     range=(0, 100),
-#     evidence={'temperature': 25, 'wind_speed': 25},
-# )

@@ -10,7 +10,7 @@ class NodeType(Enum):
 
 class Node:
     '''
-    A high-level class to represent a node in a Bayesian Network.
+    A high-level class representing a node in a Bayesian Network.
 
     A node can be either a root node, for which a marginal probability density
     function must be defined, or a child node, for which a physical equation
@@ -138,7 +138,10 @@ class Node:
         else:
             return f'Node({self.variable_name}, {self.parameters})'
 
-    def equation(self, **parent_values) -> float:
+    def equation(
+            self,
+            parent_values: dict[str, float]
+        ) -> float:
         '''
         Returns the value of the physical equation that determines the value of
         the node variable, written as a function of its parents.
@@ -157,7 +160,7 @@ class Node:
 
     def conditional_pdf(
             self,
-            x: float,
+            variable_value: float,
             parent_values: dict[str, float]
         ) -> float:
         '''
@@ -170,7 +173,7 @@ class Node:
 
         Parameters
         ----------
-        x : float
+        variable_value : float
             The value of `variable_name` for which to compute the conditional
             probability.
         parent_values : dict[str, float]
@@ -190,20 +193,24 @@ class Node:
         if self.type == NodeType.ROOT:
             raise ValueError('Root nodes do not have a conditional probability distribution.')
 
-        if x < self.domain[0] or x > self.domain[1]:
+        if variable_value < self.domain[0] or variable_value > self.domain[1]:
             return 0
 
-        theoretical_value = self.equation(**parent_values)
+        theoretical_value = self.equation(parent_values)
         adjusted_theoretical_value = (
             self.parameters['locs']['intercept'] +
             self.parameters['locs']['slope'] * theoretical_value
         )
-        return norm.pdf(x,
+        return norm.pdf(
+            variable_value,
             loc=adjusted_theoretical_value,
             scale=self.parameters['scale']
         )
 
-    def marginal_pdf(self, x: float) -> float:
+    def marginal_pdf(
+            self,
+            variable_value: float
+        ) -> float:
         '''
         Returns the marginal probability of `variable_name`, where the node is a
         root node.
@@ -213,7 +220,7 @@ class Node:
 
         Parameters
         ----------
-        x : float
+        variable_value : float
             The value to calculate the marginal probability of, which must be
             within the domain of the variable.
 
@@ -231,10 +238,10 @@ class Node:
         if self.type == NodeType.CHILD:
             raise ValueError('Child nodes do not have a predefined marginal probability distribution.')
 
-        if x < self.domain[0] or x > self.domain[1]:
+        if variable_value < self.domain[0] or variable_value > self.domain[1]:
             return 0
 
-        return self._marginal_pdf(x, **self.parameters)
+        return self._marginal_pdf(variable_value, **self.parameters)
 
 class Factor:
     '''
@@ -254,7 +261,10 @@ class Factor:
         Returns the probability density function of the factor, given a set of
         values for the variables in the scope.
     '''
-    def __init__(self, node: Node):
+    def __init__(
+            self,
+            node: Node
+        ) -> None:
         '''
         Constructs a Factor object from a Node object.
 
@@ -263,22 +273,34 @@ class Factor:
         node : Node
             The node to construct the factor from.
         '''
-        self.scope = [node.variable_name] + node.parent_variable_names
+        self.scope = sorted([node.variable_name] + node.parent_variable_names)
 
-        if node.type == 'root':
-            def pdf(**values):
+        if node.type == NodeType.ROOT:
+            def pdf(values: dict[str, float]) -> float:
                 variable_value = values[node.variable_name]
                 return node.marginal_pdf(variable_value)
         else:
-            def pdf(**values):
+            def pdf(values: dict[str, float]) -> float:
                 variable_value = values[node.variable_name]
-                parent_values = {parent: values[parent] for parent in node.parent_variable_names}
+                parent_values = {
+                    parent: values[parent]
+                    for parent in node.parent_variable_names
+                }
                 return node.conditional_pdf(variable_value, parent_values)
         self._pdf = pdf
 
-    def __mul__(self, other):
+    def __repr__(self) -> str:
+        pass
+
+    def __mul__(
+            self,
+            other
+        ):
         '''
         Returns the product of two factors.
+
+        Any two factors can be multiplied together; they do not need to have
+        the same scope.
 
         Parameters
         ----------
@@ -293,17 +315,30 @@ class Factor:
         if not isinstance(other, Factor):
             raise TypeError("Both multiplication operands must be instances of the Factor class.")
 
-        combined_scope = list(set(self.scope).union(set(other.scope)))
+        # Sort the scopes alphabetically, so that the combined scope is
+        # deterministic.
+        combined_scope = sorted(list(set(self.scope).union(set(other.scope))))
 
-        def new_pdf(**variable_values: dict[str, float]) -> float:
-            return self.pdf(**variable_values) * other.pdf(**variable_values)
+        def new_pdf(values: dict[str, float]) -> float:
+            factor1_variable_values = {
+                key: value for key, value in values.items()
+                if key in self.scope
+            }
+            factor2_variable_values = {
+                key: value for key, value in values.items()
+                if key in other.scope
+            }
+            return self.pdf(factor1_variable_values) * other.pdf(factor2_variable_values)
 
         new_factor = Factor.__new__(Factor)
         new_factor.scope = combined_scope
         new_factor._pdf = new_pdf
         return new_factor
 
-    def pdf(self, **values) -> float:
+    def pdf(
+            self,
+            values: dict[str, float]
+        ) -> float:
         '''
         Returns the probability density function of the factor, given a set of
         values for the variables in the scope.
@@ -317,12 +352,20 @@ class Factor:
         -------
         float
             The value of the probability density function.
+
+        Raises
+        ------
+        KeyError
+            If the values of the variables in the scope are not provided.
         '''
-        return self._pdf(**values)
+        if not set(self.scope).issubset(set(values.keys())):
+            raise KeyError("The values of all variables in the scope must be provided.")
+
+        return self._pdf(values)
 
 class BayesianNetwork:
     '''
-    A Bayesian network.
+    A high-level class representing a Bayesian network.
 
     Composed of a set of nodes, which are connected by edges that are defined
     implicitly by the parent variables of each node.
@@ -401,7 +444,10 @@ class BayesianNetwork:
         '''
         return self.edges
 
-    def get_node(self, variable_name: str) -> Node:
+    def get_node(
+            self,
+            variable_name: str
+        ) -> Node:
         '''
         Returns a node from the network, if it exists.
 
@@ -425,14 +471,14 @@ class BayesianNetwork:
         else:
             return self.nodes[variable_name]
 
-    def joint_pdf(self, **values) -> float:
+    def joint_pdf(self, variable_values) -> float:
         '''
         Returns the joint probability of the network, given the values of the
         variables.
 
         Parameters
         ----------
-        values : dict[str, float]
+        variable_values : dict[str, float]
             The values of the variables in the network.
 
         Returns
@@ -449,25 +495,25 @@ class BayesianNetwork:
             If the values of the variables are not within the domain of the
             variable.
         '''
-        # Check that all variables in the network are present in the values
-        # dictionary
-        if not set(self.nodes.keys()).issubset(set(values.keys())):
+        # Check that all variables have been provided
+        if not set(self.nodes.keys()).issubset(set(variable_values.keys())):
             raise TypeError('Not all variables in the network are present in the values dictionary.')
 
+        # Walk through the nodes and calculate the joint probability
         joint_probability = 1
         for node in self.nodes.values():
-            # Check that the value of the variable is within the domain of the
-            # variable
-            variable_value = values[node.variable_name]
+            # Check that the value of the variable falls within the domain of
+            # the variable
+            variable_value = variable_values[node.variable_name]
             if variable_value < node.domain[0] or variable_value > node.domain[1]:
                 raise ValueError(f'{variable_value} is not within the domain of {node.variable_name}.')
-            # If the node is a root node, use the marginal PDF to calculate the
-            # joint probability. Otherwise, use the conditional PDF.
-            if node.type == 'root':
+            # If the node is a root node, use the marginal PDF...
+            if node.type == NodeType.ROOT:
                 joint_probability *= node.marginal_pdf(variable_value)
+            # ...else use the conditional PDF.
             else:
                 parent_values = {
-                    parent_variable_name: values[parent_variable_name]
+                    parent_variable_name: variable_values[parent_variable_name]
                     for parent_variable_name in node.parent_variable_names
                 }
                 joint_probability *= node.conditional_pdf(variable_value, parent_values)
@@ -478,7 +524,7 @@ class BayesianNetwork:
         Returns a representation of the joint probability distribution of the
         network as a list of Factors.
 
-        The ordering of the list is not important.
+        The ordering of the list has no significance.
 
         Returns
         -------
@@ -510,7 +556,6 @@ class BayesianNetwork:
             self,
             factor: Factor,
             elimination_variable_name: str,
-            evidence: dict[str, float]
         ) -> Factor:
         '''
         Marginalises a factor over the given elimination variable, returning a
@@ -522,17 +567,47 @@ class BayesianNetwork:
             The factor to marginalise.
         elimination_variable_name : str
             The name of the variable to eliminate.
-        evidence : dict[str, float]
-            A dictionary of the evidence, where the keys and values are the
-            variable names and values respectively.
 
         Returns
         -------
         Factor
             The marginalised factor.
+
+        Raises
+        ------
+        ValueError
+            If the elimination variable is not in the scope of the factor.
         '''
-        
-        # Function goes here
+        # Check that the elimination variable lies within the scope of the
+        # factor
+        if elimination_variable_name not in factor.scope:
+            raise ValueError(f'{elimination_variable_name} is not in the scope of the factor.')
+
+        # Define the scope for the new factor, omitting the elimination variable
+        new_scope = [var for var in factor.scope if var != elimination_variable_name]
+
+        # Get the node and domain of the elimination variable
+        elimination_variable_node = self.nodes[elimination_variable_name]
+        elimination_variable_domain = elimination_variable_node.domain
+
+        # Define the PDF for the new factor
+        def new_pdf(values: dict[str, float]) -> float:
+            def integrand(elimination_variable_value: float) -> float:
+                values_with_elimination_variable = {
+                    **values,
+                    elimination_variable_name: elimination_variable_value
+                }
+                return factor.pdf(values_with_elimination_variable)
+
+            integral_value, _ = quad(integrand, *elimination_variable_domain)
+            return integral_value
+
+        # Create the new, marginalised factor
+        new_factor = Factor.__new__(Factor)
+        new_factor.scope = new_scope
+        new_factor._pdf = new_pdf
+
+        return new_factor
 
     def _compute_alpha(self, factor: Factor, evidence: dict[str, float]) -> float:
         # Function goes here
@@ -574,11 +649,9 @@ class BayesianNetwork:
             If the query is not in the Bayesian network.
         """
         # Check that the query and evidence are valid
-        if query_variable not in self.nodes.keys():
-            raise ValueError(f'{query_variable} is not in the Bayesian network.')
-        for evidence_variable in evidence.keys():
-            if evidence_variable not in self.nodes.keys():
-                raise ValueError(f'{evidence_variable} is not in the Bayesian network.')
+        for variable_name in [query_variable] + list(evidence.keys()):
+            if variable_name not in self.nodes.keys():
+                raise ValueError(f'{variable_name} is not in the Bayesian network.')
 
         # Define the elimination variables as the set difference between the
         # variables in the network, the query variable and the evidence.
@@ -587,11 +660,11 @@ class BayesianNetwork:
             - {query_variable}
             - set(evidence.keys())
         )
-        # Set an arbitrary ordering for the elimination variables
+        # Set an (arbitrary) ordering for the elimination variables
         elimination_variables = list(elimination_variables)
 
         # Get a representation of the joint probability distribution as a list
-        # of factors. We will eliminate the eliminattion variables from this
+        # of factors. We will eliminate the elimination variables from this
         # factorisation.
         factors = self._get_joint_factorisation()
 
@@ -608,7 +681,7 @@ class BayesianNetwork:
                 print(f'\tfactor for {factor["variable_name"]}')
                 print(f'\t\ttype: {factor["type"]}')
                 print(f'\t\tparents: {factor["parents"]}')
-                if elimination_variable_name in factor['parents'] or elimination_variable_name == factor['variable_name']:
+                if elimination_variable_name in factor.scope:
                     relevant_factors.append(factor)
                     print(f'\t\trelevant')
                 else:
@@ -627,6 +700,7 @@ class BayesianNetwork:
         # Finally, we multiply all the remaining factors together to obtain the
         # final result, denoted as $\phi$.
         phi = self._compute_factor_product(factors)
+        return phi
 
         # We then need to compute the normalisation constant, $\alpha$, which
         # is the integral of $\phi$ over the domain of the query variable.

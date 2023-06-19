@@ -19,7 +19,7 @@ wind_speed_node = Node(
     domain=(0, 100),
     parent_variable_names=[],
     marginal_pdf=norm.pdf,
-    parameters={'loc': 25, 'scale': 10}
+    parameters={'loc': 25, 'scale': 5}
 )
 
 torque_node = Node(
@@ -39,8 +39,4 @@ turbine = BayesianNetwork(
     [temperature_node, wind_speed_node, torque_node, power_node]
 )
 
-print(turbine.joint_pdf(
-    **{'temperature': 25, 'wind_speed': 25, 'torque': 25, 'power': 25}
-))
-
-factors = turbine._get_joint_factorisation()
+print(turbine.infer('power', (10, 20), {'temperature': 25, 'wind_speed': 25}))

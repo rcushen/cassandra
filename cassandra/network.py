@@ -295,7 +295,7 @@ class Factor:
         self._pdf = pdf
 
     def __repr__(self) -> str:
-        pass
+        return f"Factor({self.scope})"
 
     def __mul__(self, other):
         """
@@ -617,10 +617,6 @@ class BayesianNetwork:
 
         return new_factor
 
-    def _compute_alpha(self, factor: Factor, evidence: dict[str, float]) -> float:
-        # Function goes here
-        return 1.0
-
     def infer(
         self,
         query_variable: str,
@@ -673,6 +669,7 @@ class BayesianNetwork:
         # of factors. We will eliminate the elimination variables from this
         # factorisation.
         factors = self._get_joint_factorisation()
+        print(f"Factorisation: {factors}")
 
         # Walk through each elimination variable and eliminate it from the
         # factorisation, updating the factorisation at each step.
@@ -686,9 +683,7 @@ class BayesianNetwork:
             # scope of the factor) and those that do not.
             relevant_factors, irrelevant_factors = [], []
             for factor in factors:
-                print(f'\tfactor for {factor["variable_name"]}')
-                print(f'\t\ttype: {factor["type"]}')
-                print(f'\t\tparents: {factor["parents"]}')
+                print(f'\tfactor {factor.scope}...', end="")
                 if elimination_variable_name in factor.scope:
                     relevant_factors.append(factor)
                     print(f"\t\trelevant")
@@ -700,7 +695,7 @@ class BayesianNetwork:
             psi = self._compute_factor_product(relevant_factors)
             # We then marginalise the combined factor $\psi$ over the
             # elimination variable, to obtain a new factor $\tau$.
-            tau = self._marginalise_factor(psi, elimination_variable_name, evidence)
+            tau = self._marginalise_factor(psi, elimination_variable_name)
             # We then replace the relevant factors in the factorisation with
             # the new factor $\tau$.
             factors = irrelevant_factors + [tau]
@@ -708,16 +703,22 @@ class BayesianNetwork:
         # Finally, we multiply all the remaining factors together to obtain the
         # final result, denoted as $\phi$.
         phi = self._compute_factor_product(factors)
-        return phi
+        print(f"Final factor: {phi}")
 
         # We then need to compute the normalisation constant, $\alpha$, which
-        # is the integral of $\phi$ over the domain of the query variable.
-        alpha = self._compute_alpha(phi, query_variable, evidence)
+        # is the integral of $\phi$ over the entire domain of the query
+        # variable.
+        query_variable_domain = self.nodes[query_variable].domain
+        def integrand(x: float) -> float:
+            return phi.pdf({query_variable: x, **evidence})
+        alpha, _ = quad(integrand, *query_variable_domain)
 
-        # The final conditional pdf is the normlisation of $\phi$ by $\alpha$.
+        # The final conditional pdf is then simply the normalisation of $\phi$
+        # by $\alpha$, evaluated using the evidence.
         def final_conditional_pdf(x: float) -> float:
-            return phi(**{query_variable: x, **evidence}) / alpha
+            return phi.pdf({query_variable: x, **evidence}) / alpha
 
         # We then integrate the conditional pdf over the range of the query
         # variable to obtain the final result.
-        return quad(final_conditional_pdf, *range)[0]
+        prob, _ = quad(final_conditional_pdf, *range)
+        return prob

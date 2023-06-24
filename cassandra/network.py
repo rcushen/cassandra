@@ -129,7 +129,10 @@ class Node:
             # Gaussian, set them to default values
             self._equation = equation
             if distribution_parameters is None:
-                self.distribution_parameters = {"locs": {"intercept": 0, "slope": 1}, "scale": 1}
+                self.distribution_parameters = {
+                    "locs": {"intercept": 0, "slope": 1},
+                    "scale": 1,
+                }
             else:
                 self.distribution_parameters = distribution_parameters
 
@@ -148,10 +151,10 @@ class Node:
             return f"Node({self.variable_name}, {self.system_parameter_names}, {self.marginal_pdf}, {self.distribution_parameters})"
 
     def equation(
-            self,
-            parent_variable_values: dict[str, float],
-            system_parameter_values: dict[str, float]
-        ) -> float:
+        self,
+        parent_variable_values: dict[str, float],
+        system_parameter_values: dict[str, float],
+    ) -> float:
         """
         Returns the value of the physical equation that determines the value of
         the node variable, written as a function of its parents and the external
@@ -175,7 +178,7 @@ class Node:
         self,
         variable_value: float,
         parent_variable_values: dict[str, float],
-        system_parameter_values: dict[str, float]
+        system_parameter_values: dict[str, float],
     ) -> float:
         """
         Returns the conditional probability of `variable_name` given the parent
@@ -216,7 +219,9 @@ class Node:
         if variable_value < self.domain[0] or variable_value > self.domain[1]:
             return 0
 
-        theoretical_value = self.equation(parent_variable_values, system_parameter_values)
+        theoretical_value = self.equation(
+            parent_variable_values, system_parameter_values
+        )
         adjusted_theoretical_value = (
             self.distribution_parameters["locs"]["intercept"]
             + self.distribution_parameters["locs"]["slope"] * theoretical_value
@@ -228,10 +233,8 @@ class Node:
         )
 
     def marginal_pdf(
-            self,
-            variable_value: float,
-            system_parameter_values: dict[str, float] = None
-        ) -> float:
+        self, variable_value: float, system_parameter_values: dict[str, float] = None
+    ) -> float:
         """
         Returns the marginal probability of `variable_name`, where the node is a
         root node.
@@ -302,28 +305,25 @@ class Factor:
         if node.type == NodeType.ROOT:
 
             def pdf(
-                    variable_values: dict[str, float],
-                    system_parameter_values: dict[str, float]
-                ) -> float:
+                variable_values: dict[str, float],
+                system_parameter_values: dict[str, float],
+            ) -> float:
                 variable_value = variable_values[node.variable_name]
-                return node.marginal_pdf(
-                    variable_value,
-                    system_parameter_values
-                )
+                return node.marginal_pdf(variable_value, system_parameter_values)
 
         else:
 
             def pdf(
-                    variable_values: dict[str, float],
-                    system_parameter_values: dict[str, float]
-                ) -> float:
+                variable_values: dict[str, float],
+                system_parameter_values: dict[str, float],
+            ) -> float:
                 variable_value = variable_values[node.variable_name]
                 parent_variable_values = {
-                    parent: variable_values[parent] for parent in node.parent_variable_names
+                    parent: variable_values[parent]
+                    for parent in node.parent_variable_names
                 }
                 return node.conditional_pdf(
-                    variable_value,
-                    parent_variable_values, system_parameter_values
+                    variable_value, parent_variable_values, system_parameter_values
                 )
 
         self._pdf = pdf
@@ -358,22 +358,21 @@ class Factor:
         combined_scope = sorted(list(set(self.scope).union(set(other.scope))))
 
         def new_pdf(
-                variable_values: dict[str, float],
-                system_parameter_values: dict[str, float]
-            ) -> float:
+            variable_values: dict[str, float], system_parameter_values: dict[str, float]
+        ) -> float:
             factor1_variable_values = {
-                key: value for key, value in variable_values.items() if key in self.scope
+                key: value
+                for key, value in variable_values.items()
+                if key in self.scope
             }
             factor2_variable_values = {
-                key: value for key, value in variable_values.items() if key in other.scope
+                key: value
+                for key, value in variable_values.items()
+                if key in other.scope
             }
             return self.pdf(
-                factor1_variable_values,
-                system_parameter_values
-            ) * other.pdf(
-                factor2_variable_values,
-                system_parameter_values
-            )
+                factor1_variable_values, system_parameter_values
+            ) * other.pdf(factor2_variable_values, system_parameter_values)
 
         new_factor = Factor.__new__(Factor)
         new_factor.scope = combined_scope
@@ -381,10 +380,10 @@ class Factor:
         return new_factor
 
     def pdf(
-            self,
-            variable_values: dict[str, float],
-            system_parameter_values: dict[str, float]
-        ) -> float:
+        self,
+        variable_values: dict[str, float],
+        system_parameter_values: dict[str, float],
+    ) -> float:
         """
         Returns the probability density function of the factor, given a set of
         values for the variables in the scope.
@@ -530,10 +529,10 @@ class BayesianNetwork:
             return self.nodes[variable_name]
 
     def joint_pdf(
-            self,
-            variable_values: dict[str, float],
-            system_parameter_values: dict[str, float]
-        ) -> float:
+        self,
+        variable_values: dict[str, float],
+        system_parameter_values: dict[str, float],
+    ) -> float:
         """
         Returns the joint probability of the network, given the values of the
         variables and system parameters.
@@ -567,7 +566,9 @@ class BayesianNetwork:
             raise TypeError(
                 "Not all variables in the network are present in the variable values dictionary."
             )
-        if not self.system_parameter_names.issubset(set(system_parameter_values.keys())):
+        if not self.system_parameter_names.issubset(
+            set(system_parameter_values.keys())
+        ):
             raise TypeError(
                 "Not all system parameters in the network are present in the system parameters dictionary."
             )
@@ -585,8 +586,7 @@ class BayesianNetwork:
             # If the node is a root node, use the marginal PDF...
             if node.type == NodeType.ROOT:
                 joint_probability *= node.marginal_pdf(
-                    variable_value,
-                    system_parameter_values
+                    variable_value, system_parameter_values
                 )
             # ...else use the conditional PDF.
             else:
@@ -595,9 +595,7 @@ class BayesianNetwork:
                     for parent_variable_name in node.parent_variable_names
                 }
                 joint_probability *= node.conditional_pdf(
-                    variable_value,
-                    parent_variable_values,
-                    system_parameter_values
+                    variable_value, parent_variable_values, system_parameter_values
                 )
         return joint_probability
 
@@ -676,17 +674,15 @@ class BayesianNetwork:
 
         # Define the PDF for the new factor
         def new_pdf(
-                variable_values: dict[str, float],
-                system_parameter_values: dict[str, float]
-            ) -> float:
+            variable_values: dict[str, float], system_parameter_values: dict[str, float]
+        ) -> float:
             def integrand(elimination_variable_value: float) -> float:
                 variable_values_with_elimination_variable = {
                     **variable_values,
                     elimination_variable_name: elimination_variable_value,
                 }
                 return factor.pdf(
-                    variable_values_with_elimination_variable,
-                    system_parameter_values
+                    variable_values_with_elimination_variable, system_parameter_values
                 )
 
             integral_value, _ = quad(integrand, *elimination_variable_domain)
@@ -704,7 +700,7 @@ class BayesianNetwork:
         query_variable_name: str,
         range: tuple[float, float],
         evidence: dict[str, float],
-        system_parameter_values: dict[str, float]
+        system_parameter_values: dict[str, float],
     ) -> float:
         """
         Returns the probability that the query variable lies in the given range,
@@ -768,7 +764,7 @@ class BayesianNetwork:
             # scope of the factor) and those that do not.
             relevant_factors, irrelevant_factors = [], []
             for factor in factors:
-                print(f'\tfactor {factor.scope}...', end="")
+                print(f"\tfactor {factor.scope}...", end="")
                 if elimination_variable_name in factor.scope:
                     relevant_factors.append(factor)
                     print(f"\t\trelevant")
@@ -794,20 +790,21 @@ class BayesianNetwork:
         # is the integral of $\phi$ over the entire domain of the query
         # variable.
         query_variable_domain = self.nodes[query_variable_name].domain
+
         def integrand(x: float) -> float:
             return phi.pdf(
-                {query_variable_name: x, **evidence},
-                system_parameter_values
+                {query_variable_name: x, **evidence}, system_parameter_values
             )
+
         alpha, _ = quad(integrand, *query_variable_domain)
 
         # The final conditional pdf is then simply the normalisation of $\phi$
         # by $\alpha$, evaluated using the evidence.
         def final_conditional_pdf(x: float) -> float:
-            return phi.pdf(
-                {query_variable_name: x, **evidence},
-                system_parameter_values
-            ) / alpha
+            return (
+                phi.pdf({query_variable_name: x, **evidence}, system_parameter_values)
+                / alpha
+            )
 
         # We then integrate the conditional pdf over the range of the query
         # variable to obtain the final result.

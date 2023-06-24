@@ -16,34 +16,27 @@ def test_root_node_creation():
         "A",
         (0, 1),
         [],
-        ['gear', 'is_on'],
+        ["gear", "is_on"],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
 
     assert node.type == NodeType.ROOT
     assert node.variable_name == "A"
     assert node.domain == (0, 1)
     assert node.parent_variable_names == []
-    assert node.system_parameter_names == ['gear', 'is_on']
+    assert node.system_parameter_names == ["gear", "is_on"]
     assert node.distribution_parameters == {"loc": 0, "scale": 1}
 
 
 # Test Node creation with parent variables (i.e. a child node)
 def test_child_node_creation():
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
-    node = Node(
-        "B",
-        (0, 2),
-        ["A"],
-        ["state"],
-        equation=equation_func
-    )
+    node = Node("B", (0, 2), ["A"], ["state"], equation=equation_func)
 
     assert node.type == NodeType.CHILD
     assert node.variable_name == "B"
@@ -81,7 +74,7 @@ def test_marginal_pdf():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
 
     assert_approx_equal(node.marginal_pdf(0.5), norm.pdf(0.5, loc=0, scale=1))
@@ -104,9 +97,8 @@ def test_error_marginal_pdf_child_node():
 # Test conditional_pdf method
 def test_conditional_pdf():
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
     node = Node(
@@ -119,8 +111,7 @@ def test_conditional_pdf():
     )
 
     assert_approx_equal(
-        node.conditional_pdf(2, {"A": 1}, {"state": 1}),
-        norm.pdf(2, loc=2, scale=1)
+        node.conditional_pdf(2, {"A": 1}, {"state": 1}), norm.pdf(2, loc=2, scale=1)
     )
 
 
@@ -132,7 +123,7 @@ def test_error_conditional_pdf_root_node():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
 
     with pytest.raises(
@@ -151,23 +142,19 @@ def test_factor_creation_root_node():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     factor = Factor(node)
 
     assert factor.scope == ["A"]
-    assert_approx_equal(
-        factor.pdf({"A": 0.5}, {}),
-        norm.pdf(0.5, loc=0, scale=1)
-    )
+    assert_approx_equal(factor.pdf({"A": 0.5}, {}), norm.pdf(0.5, loc=0, scale=1))
 
 
 # Test creating Factor from a child node
 def test_factor_creation_child_node():
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
     node = Node("B", (0, 8), ["A"], ["state"], equation=equation_func)
@@ -175,8 +162,7 @@ def test_factor_creation_child_node():
 
     assert factor.scope == sorted(["B", "A"])
     assert_approx_equal(
-        factor.pdf({"B": 1.5, "A": 2}, {"state": 1}),
-        norm.pdf(1.5, loc=4, scale=1)
+        factor.pdf({"B": 1.5, "A": 2}, {"state": 1}), norm.pdf(1.5, loc=4, scale=1)
     )
 
 
@@ -188,23 +174,16 @@ def test_factor_multiplication():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     factorA = Factor(nodeA)
 
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
-    nodeB = Node(
-        "B",
-        (0, 2),
-        ["A"],
-        ["state"],
-        equation=equation_func
-    )
+    nodeB = Node("B", (0, 2), ["A"], ["state"], equation=equation_func)
     factorB = Factor(nodeB)
 
     combined_factor = factorA * factorB
@@ -224,7 +203,7 @@ def test_factor_multiplication_with_non_factor():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     factor = Factor(node)
 
@@ -243,7 +222,7 @@ def test_factor_pdf_invalid_input():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     factor = Factor(node)
 
@@ -257,15 +236,13 @@ def test_factor_pdf_invalid_input():
 # Test BayesianNetwork creation
 def test_bayesian_network_creation():
     def equation_func_B(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
     def equation_func_C(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 3 * variable_values["B"] * parameter_values["state"]
 
     nodeA = Node(
@@ -274,7 +251,7 @@ def test_bayesian_network_creation():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     nodeB = Node(
         "B",
@@ -304,9 +281,8 @@ def test_bayesian_network_creation():
 # Test error when creating BayesianNetwork with invalid node
 def test_error_bayesian_network_creation_invalid_node():
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
     nodeA = Node(
@@ -315,15 +291,9 @@ def test_error_bayesian_network_creation_invalid_node():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
-    nodeB = Node(
-        "B",
-        (0, 2),
-        ["C"],
-        ["state"],
-        equation=equation_func
-    )
+    nodeB = Node("B", (0, 2), ["C"], ["state"], equation=equation_func)
 
     with pytest.raises(ValueError, match="C is not in the Bayesian network."):
         network = BayesianNetwork([nodeA, nodeB])
@@ -332,15 +302,13 @@ def test_error_bayesian_network_creation_invalid_node():
 # Test joint_pdf method for BayesianNetwork
 def test_bayesian_network_joint_pdf():
     def equation_func_B(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 2 * variable_values["A"] * parameter_values["state"]
 
     def equation_func_C(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return 3 * variable_values["B"] * parameter_values["state"]
 
     nodeA = Node(
@@ -349,7 +317,7 @@ def test_bayesian_network_joint_pdf():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     nodeB = Node(
         "B",
@@ -372,46 +340,29 @@ def test_bayesian_network_joint_pdf():
     variable_values = {"A": 0.5, "B": 1.5, "C": 4.5}
     system_parameter_values = {"state": 1.0}
 
-    calculated_probability = network.joint_pdf(
-        variable_values,
-        system_parameter_values
-    )
+    calculated_probability = network.joint_pdf(variable_values, system_parameter_values)
     true_probability = (
-        nodeA.marginal_pdf(
-            variable_values["A"],
-            system_parameter_values
-        ) * nodeB.conditional_pdf(
-            variable_values["B"],
-            {"A": variable_values["A"]},
-            system_parameter_values
-        ) * nodeC.conditional_pdf(
-            variable_values["C"],
-            {"B": variable_values["B"]},
-            system_parameter_values
+        nodeA.marginal_pdf(variable_values["A"], system_parameter_values)
+        * nodeB.conditional_pdf(
+            variable_values["B"], {"A": variable_values["A"]}, system_parameter_values
+        )
+        * nodeC.conditional_pdf(
+            variable_values["C"], {"B": variable_values["B"]}, system_parameter_values
         )
     )
 
-    assert_approx_equal(
-        calculated_probability,
-        true_probability
-    )
+    assert_approx_equal(calculated_probability, true_probability)
 
 
 # Test marginalise_factor method for BayesianNetwork
 def test_marginalise_factor():
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return variable_values["A"] * parameter_values["state"]
 
     nodeA = Node(
-        "A",
-        (0, 1),
-        [],
-        [],
-        marginal_pdf=lambda x: 1.0,
-        distribution_parameters={}
+        "A", (0, 1), [], [], marginal_pdf=lambda x: 1.0, distribution_parameters={}
     )
     nodeB = Node(
         "B",
@@ -430,36 +381,22 @@ def test_marginalise_factor():
     system_parameter_values = {"state": 1.0}
 
     calculated_probability = marginalised_factor.pdf(
-        variable_values,
-        system_parameter_values
+        variable_values, system_parameter_values
     )
-    true_probability = norm.cdf(
-        1, loc=0.5, scale=1
-    ) - norm.cdf(
-        0, loc=0.5, scale=1
-    )
+    true_probability = norm.cdf(1, loc=0.5, scale=1) - norm.cdf(0, loc=0.5, scale=1)
 
-    assert_approx_equal(
-        calculated_probability,
-        true_probability
-    )
+    assert_approx_equal(calculated_probability, true_probability)
 
 
 # Test inference for a simple network
 def test_inference_simple_network():
     def equation_func(
-            variable_values: dict[str, float],
-            parameter_values: dict[str, float]
-        ) -> float:
+        variable_values: dict[str, float], parameter_values: dict[str, float]
+    ) -> float:
         return variable_values["A"] * parameter_values["state"]
 
     nodeA = Node(
-        "A",
-        (0, 1),
-        [],
-        [],
-        marginal_pdf=lambda x: 1.0,
-        distribution_parameters={}
+        "A", (0, 1), [], [], marginal_pdf=lambda x: 1.0, distribution_parameters={}
     )
     nodeB = Node(
         "B",
@@ -477,21 +414,11 @@ def test_inference_simple_network():
     system_parameter_values = {"state": 1.0}
 
     calculated_probability = network.infer(
-        query_variable_name,
-        query_range,
-        evidence,
-        system_parameter_values
+        query_variable_name, query_range, evidence, system_parameter_values
     )
-    true_probability = norm.cdf(
-        1, loc=0.5, scale=1
-    ) - norm.cdf(
-        0, loc=0.5, scale=1
-    )
+    true_probability = norm.cdf(1, loc=0.5, scale=1) - norm.cdf(0, loc=0.5, scale=1)
 
-    assert_approx_equal(
-        calculated_probability,
-        true_probability
-    )
+    assert_approx_equal(calculated_probability, true_probability)
 
 
 # Test inference for a more complex network
@@ -503,7 +430,7 @@ def test_inference_complex_network():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 0, "scale": 1}
+        distribution_parameters={"loc": 0, "scale": 1},
     )
     nodeB = Node(
         "B",
@@ -511,35 +438,35 @@ def test_inference_complex_network():
         [],
         [],
         marginal_pdf=norm.pdf,
-        distribution_parameters={"loc": 3, "scale": 1}
+        distribution_parameters={"loc": 3, "scale": 1},
     )
     nodeC = Node(
         "C",
         (-16, 19),
         ["A", "B"],
         ["state"],
-        equation=lambda v, p: p["state"] * (2 * v["A"] + 0.5 * v["B"])
+        equation=lambda v, p: p["state"] * (2 * v["A"] + 0.5 * v["B"]),
     )
     nodeD = Node(
         "D",
         (-30, 30),
         ["A", "C"],
         ["state"],
-        equation=lambda v, p: p["state"] * (v["A"] - v["C"])
+        equation=lambda v, p: p["state"] * (v["A"] - v["C"]),
     )
     nodeE = Node(
         "E",
         (-50, 50),
         ["B", "C"],
         ["state"],
-        equation=lambda v, p: p["state"] * (v["B"] + v["C"])
+        equation=lambda v, p: p["state"] * (v["B"] + v["C"]),
     )
     nodeF = Node(
         "F",
         (-200, 200),
         ["D", "E"],
         ["state"],
-        equation=lambda v, p: p["state"] * (v["D"] + v["E"])
+        equation=lambda v, p: p["state"] * (v["D"] + v["E"]),
     )
 
     network = BayesianNetwork([nodeA, nodeB, nodeC, nodeD, nodeE, nodeF])
@@ -550,14 +477,8 @@ def test_inference_complex_network():
     system_parameter_values = {"state": 1.0}
 
     calculated_probability = network.infer(
-        query_variable_name,
-        query_range,
-        evidence,
-        system_parameter_values
+        query_variable_name, query_range, evidence, system_parameter_values
     )
     true_probability = 0.000001
 
-    assert_approx_equal(
-        calculated_probability,
-        true_probability
-    )
+    assert_approx_equal(calculated_probability, true_probability)

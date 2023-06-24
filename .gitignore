@@ -1,6 +1,8 @@
 # Local files
 .vscode/
 .pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
 
 # Cached files
 */__pycache__/
@@ -8,3 +10,6 @@
 # Virtual environments
 /venv
 /env
+
+# Environment variables
+.env

@@ -2,10 +2,15 @@ from cassandra.network import Node, BayesianNetwork
 
 from scipy.stats import norm
 
-def torque_equation(wind_speed: float, temperature: float) -> float:
-    return (wind_speed ** 2) / (temperature)
-def power_equation(torque: float) -> float:
-    return torque
+def torque_equation(variables: dict[str, float], parameters: dict) -> float:
+    wind_speed, temperature = variables['wind_speed'], variables['temperature']
+    torque_factor = parameters['torque_factor']
+    return torque_factor * (wind_speed ** 2) / (temperature)
+
+def power_equation(variables: dict[str, float], parameters: dict) -> float:
+    torque = variables['torque']
+    power_factor = parameters['power_factor']
+    return power_factor * torque
 
 temperature_node = Node(
     variable_name='temperature',

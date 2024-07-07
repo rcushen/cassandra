@@ -5,7 +5,11 @@
 .DS_Store
 
 # Cached files
-*/__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Setup files
+**/cassandra.egg-info/
 
 # Virtual environments
 /venv

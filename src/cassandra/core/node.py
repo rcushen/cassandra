@@ -1,7 +1,7 @@
-from typing import List
-from functools import reduce
-
 import numpy as np
+
+from functools import reduce
+from typing import List
 
 class Node:
     def __init__(
@@ -23,7 +23,7 @@ class Node:
         - parent_nodes (List[Node]): a list of parent nodes
         - cpd (np.Array): a (N+1)-dimensional numpy array representing the
             conditional probability distribution associated with the node, where
-            each dimension corresponds to a parent node and the last dimension
+            each dimension N corresponds to a parent node and the last dimension
             corresponds to the variable itself.
 
         Raises:
@@ -82,12 +82,24 @@ class Node:
         """
         Returns the number of possible states of the variable, which is equal to
         the cardinality of the last dimension of the CPD.
+
+        Args: None
+
+        Raises: None
+
+        Returns: an integer representing the number of possible states of the variable
         """
         return self.cpd.shape[-1]
 
     def get_parent_nodes(self) -> List:
         """
-        Returns the parent nodes
+        Returns the parent nodes of the current node.
+
+        Args: None
+
+        Raises: None
+
+        Returns: a list of parent nodes
         """
         return self.parent_nodes
 
@@ -97,9 +109,14 @@ class Node:
         of observed states of all the parent variables.
 
         Args:
-        - parent_variable_assignment (dict): a dictionary where the keys are the names of
-            the parent nodes and the values are the indices of the observed
-            states of these parent nodes.
+        - parent_variable_assignment (dict): a dictionary where the keys are the
+            names of the parent nodes and the values are the indices of the
+            observed states of these parent nodes.
+
+        Raises:
+        - ValueError: if the parent nodes are not provided
+        - ValueError: if the parent nodes are not valid
+        - ValueError: if the parent nodes are not integers
 
         Returns: a (cardinality,) numpy array representing the conditional
         distribution of the variable, given the parent observations.
@@ -141,7 +158,8 @@ class Node:
         Raises:
         - ValueError: if the variable assignment is not a valid state
 
-        Returns: a float representing the conditional probability
+        Returns: a float representing the conditional probability of the state,
+        given the observed states of the parent nodes.
         """
         # Validate inputs
         # 0. Check that the variable assignment is an integer

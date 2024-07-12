@@ -1,2 +1,2 @@
 from .node import Node
-from .network import BayesianNetwork
+from .network import Network

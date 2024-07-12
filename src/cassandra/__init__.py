@@ -1,2 +1,2 @@
 from .core.node import Node
-from .core.network import BayesianNetwork
+from .core.network import Network

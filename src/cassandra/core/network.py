@@ -3,6 +3,23 @@ from .node import Node
 from typing import List
 
 class Network:
+    """
+    A Bayesian network.
+
+    Composed of nodes, a Bayesian network is a directed acyclic graph that
+    represents a set of variables and their conditional dependencies.
+
+    Attributes:
+    - nodes (Dict[str, Node]): a dictionary of nodes in the network, where
+        the keys are the variable names of the nodes.
+
+    Methods:
+    - get_cardinality: returns the number of nodes in the network
+    - get_variable_names: returns the variable names of the nodes in the network
+    - joint_probability: evaluates the joint probability of the network, given a
+        full suite of evidence variables
+
+    """
     def __init__(
             self,
             nodes: List
@@ -25,6 +42,10 @@ class Network:
         - ValueError: if the network is not a directed acyclic graph
 
         Returns: None
+
+        Attributes:
+        - nodes (Dict[str, Node]): a dictionary of nodes in the network, where
+            the keys are the variable names of the nodes.
         """
 
         # Check validity of inputs
@@ -44,8 +65,7 @@ class Network:
         # 3. Check that the network is a directed acyclic graph
         # (to be implemented)
 
-        self.nodes = nodes
-
+        self.nodes = { node.variable_name: node for node in nodes }
 
     def get_cardinality(self):
         """
@@ -70,11 +90,57 @@ class Network:
         Returns: a set of strings representing the variable names of the nodes
 
         """
-        return set([node.variable_name for node in self.nodes])
+        return set([node for node in self.nodes.keys()])
+
+    def joint_probability(self, e: dict[str, int]) -> float:
+        """
+        Evaluates the joint probability of the network, given a full suite of
+        evidence variables.
+
+        Args:
+        - e (Dict[str, int]): a dictionary of all variables and their values
+
+        Raises:
+        - ValueError: if the evidence variables are not a dictionary
+        - ValueError: if the evidence variables are not complete
+
+        Returns: a float representing the joint probability of the network
+        """
+
+        # Check validity of inputs
+        # 0. Check variable types
+        if not isinstance(e, dict):
+            raise ValueError("The evidence variables must be a dictionary")
+        # 1. Check that the evidence variables are complete
+        if set(e.keys()) != self.get_variable_names():
+            raise ValueError("The evidence variables must be complete")
+        # 2. Check that the evidence observations are valid
+        for variable_name, value in e.items():
+            if value < 0 or value >= self.nodes[variable_name].get_cardinality():
+                raise ValueError("The evidence observations are invalid")
+
+        # Compute the joint probability
+        prob = 1
+        for variable_name, node in self.nodes.items():
+            parent_variable_names = [parent_node.variable_name for parent_node in node.parent_nodes]
+
+            prob *= node.compute_conditional_probability(e[variable_name], { parent_variable_name: e[parent_variable_name] for parent_variable_name in parent_variable_names })
+
+        return prob
 
     def query(self, Y, e):
         """
-        TO BE IMPLEMENTED
+        Evaluates a conditional probability query on the network, using the
+        variable elimination algorithm.
+
+        Args:
+        - Y (Set[str]): a set of variable names to query
+        - e (Dict[str, int]): a dictionary of evidence variables and their values
+
+        Raises: None
+
+        Returns: a dictionary where the keys are the variable names of the query
+        and the values are the probabilities of the query variables.
         """
         prob = 0
         return prob

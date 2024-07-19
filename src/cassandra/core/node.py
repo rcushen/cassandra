@@ -4,6 +4,32 @@ from functools import reduce
 from typing import List
 
 class Node:
+    """
+    A node in a Bayesian network.
+
+    A node is a (discrete) variable in a Bayesian network, which is associated
+    with a conditional probability distribution (CPD) that represents the
+    probability distribution of the variable given the states of the parent
+    nodes.
+
+    Attributes:
+    - variable_name (str): the name of the variable
+    - parent_nodes (List[Node]): a list of parent nodes
+    - cpd (np.Array): a (N+1)-dimensional numpy array representing the
+        conditional probability distribution associated with the node, where
+        each dimension N corresponds to a parent node and the last dimension
+        corresponds to the variable itself
+
+    Methods:
+    - get_cardinality: returns the number of possible states of the variable
+    - get_scope: returns a set of the variable name and the names of the parent
+        nodes
+    - get_conditional_distribution: returns the conditional distribution of the node,
+        given an assignment of observed states of all the parent variables
+    - compute_conditional_probability: computes the conditional probability of the variable,
+        given an assignment of parent variables and a particular state of the variable
+
+    """
     def __init__(
             self,
             variable_name: str,
@@ -35,7 +61,6 @@ class Node:
 
         Returns: None
         """
-
         # Check validity of inputs
         # 0. Check variable types
         if not isinstance(cpd, np.ndarray):
@@ -91,17 +116,18 @@ class Node:
         """
         return self.cpd.shape[-1]
 
-    def get_parent_nodes(self) -> List:
+    def get_scope(self) -> set:
         """
-        Returns the parent nodes of the current node.
+        Returns a set of the variable name and any parent node names.
 
         Args: None
 
         Raises: None
 
-        Returns: a list of parent nodes
+        Returns: a set of strings representing the variable name and the names of the parent nodes
         """
-        return self.parent_nodes
+        scope = set([self.variable_name] + [node.variable_name for node in self.parent_nodes])
+        return scope
 
     def get_conditional_distribution(self, parent_variable_assignment: dict[str, int]) -> np.ndarray:
         """

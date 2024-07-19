@@ -39,3 +39,30 @@ def test_get_variable_names(simple_nodes):
     network = Network(list(simple_nodes))
     assert network.get_variable_names() == set(['A', 'B', 'C'])
 
+# joint_probability
+def test_joint_probability_bad_input(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(ValueError):
+        network.joint_probability(['A', 'B', 'C'])
+
+def test_joint_probability_missing_inputs(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(ValueError):
+        network.joint_probability({'A': 0, 'B': 1})
+
+def test_joint_probability_invalid_values(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(ValueError):
+        network.joint_probability({
+            'A': 0,
+            'B': 1,
+            'C': 2
+        })
+
+def test_joint_probability(simple_nodes):
+    network = Network(list(simple_nodes))
+    assert np.isclose(network.joint_probability({
+        'A': 0,
+        'B': 0,
+        'C': 0
+    }), 0.378)

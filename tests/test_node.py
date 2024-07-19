@@ -63,12 +63,12 @@ def test_get_cardinality(simple_nodes):
     assert node_b.get_cardinality() == 2
     assert node_c.get_cardinality() == 2
 
-# get_parent_nodes
-def test_get_parent_nodes(simple_nodes):
+# get_scope
+def test_get_scope(simple_nodes):
     node_a, node_b, node_c = simple_nodes
-    assert node_a.get_parent_nodes() == []
-    assert node_b.get_parent_nodes() == [node_a]
-    assert node_c.get_parent_nodes() == [node_a, node_b]
+    assert node_a.get_scope() == set(["A"])
+    assert node_b.get_scope() == set(["A", "B"])
+    assert node_c.get_scope() == set(["A", "B", "C"])
 
 # get_conditional_distribution
 def test_get_conditional_distribution_no_parents(simple_nodes):

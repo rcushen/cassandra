@@ -118,15 +118,17 @@ class Node:
 
     def get_scope(self) -> set:
         """
-        Returns a set of the variable name and any parent node names.
+        Returns a tuple of the parent variables and variable name, in line with
+        the order of the CPD.
 
         Args: None
 
         Raises: None
 
-        Returns: a set of strings representing the variable name and the names of the parent nodes
+        Returns: a tuple of strings representing the names of the parent nodes
+        and the variable name
         """
-        scope = set([self.variable_name] + [node.variable_name for node in self.parent_nodes])
+        scope = tuple(node.variable_name for node in self.parent_nodes) + (self.variable_name,)
         return scope
 
     def get_conditional_distribution(self, parent_variable_assignment: dict[str, int]) -> np.ndarray:

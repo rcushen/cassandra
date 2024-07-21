@@ -3,30 +3,6 @@ import numpy as np
 
 from cassandra.core import Node
 
-@pytest.fixture
-def simple_nodes():
-    # P(A=1) = 0.4
-    node_a = Node("A", [], np.array([0.6, 0.4]))
-
-    # P(B=0|A=1) = 0.2
-    node_b = Node("B", [node_a], np.array([
-        [0.7, 0.3],
-        [0.2, 0.8]
-    ]))
-
-    # P(C=0|A=1, B=0) = 0.3
-    node_c = Node("C", [node_a, node_b], np.array([
-        [
-            [0.9, 0.1],
-            [0.5, 0.5]
-        ],
-        [
-            [0.3, 0.7],
-            [0.1, 0.9]
-        ]
-    ]))
-    return node_a, node_b, node_c
-
 # __init__
 def test_init_valid_inputs(simple_nodes):
     node_a, _, _ = simple_nodes
@@ -88,15 +64,6 @@ def test_get_scope(simple_nodes):
     assert node_c.get_scope() == ("A", "B", "C")
 
 # get_conditional_distribution
-def test_get_conditional_distribution_no_parents(simple_nodes):
-    node_a, _, _ = simple_nodes
-    np.testing.assert_array_equal(node_a.get_conditional_distribution({}), np.array([0.6, 0.4]))
-
-def test_get_conditional_distribution_with_parents(simple_nodes):
-    _, node_b, node_c = simple_nodes
-    np.testing.assert_array_equal(node_b.get_conditional_distribution({"A": 0}), np.array([0.7, 0.3]))
-    np.testing.assert_array_equal(node_c.get_conditional_distribution({"A": 1, "B": 0}), np.array([0.3, 0.7]))
-
 def test_get_conditional_distribution_invalid_input(simple_nodes):
     _, node_b, _ = simple_nodes
     with pytest.raises(ValueError):
@@ -117,13 +84,16 @@ def test_get_conditional_distribution_extra_parent(simple_nodes):
     with pytest.raises(ValueError):
         node_c.get_conditional_distribution({"A": 1, "B": 0, "D": 0})
 
-# compute_conditional_probability
-def test_compute_conditional_probability(simple_nodes):
-    node_a, node_b, node_c = simple_nodes
-    assert node_a.compute_conditional_probability(0, {}) == pytest.approx(0.6)
-    assert node_b.compute_conditional_probability(1, {"A": 0}) == pytest.approx(0.3)
-    assert node_c.compute_conditional_probability(1, {"A": 1, "B": 0}) == pytest.approx(0.7)
+def test_get_conditional_distribution_no_parents(simple_nodes):
+    node_a, _, _ = simple_nodes
+    np.testing.assert_array_equal(node_a.get_conditional_distribution({}), np.array([0.6, 0.4]))
 
+def test_get_conditional_distribution_with_parents(simple_nodes):
+    _, node_b, node_c = simple_nodes
+    np.testing.assert_array_equal(node_b.get_conditional_distribution({"A": 0}), np.array([0.7, 0.3]))
+    np.testing.assert_array_equal(node_c.get_conditional_distribution({"A": 1, "B": 0}), np.array([0.3, 0.7]))
+
+# compute_conditional_probability
 def test_compute_conditional_probability_invalid_input(simple_nodes):
     node_a, _, _ = simple_nodes
     with pytest.raises(ValueError):
@@ -143,4 +113,24 @@ def test_compute_conditional_probability_missing_parent(simple_nodes):
     _, node_b, _ = simple_nodes
     with pytest.raises(ValueError):
         node_b.compute_conditional_probability(1, {})
+
+def test_compute_conditional_probability(simple_nodes):
+    node_a, node_b, node_c = simple_nodes
+
+    assert node_a.compute_conditional_probability(0, {}) == pytest.approx(0.6)
+    assert node_a.compute_conditional_probability(1, {}) == pytest.approx(0.4)
+
+    assert node_b.compute_conditional_probability(0, {"A": 0}) == pytest.approx(0.7)
+    assert node_b.compute_conditional_probability(1, {"A": 0}) == pytest.approx(0.3)
+    assert node_b.compute_conditional_probability(0, {"A": 1}) == pytest.approx(0.2)
+    assert node_b.compute_conditional_probability(1, {"A": 1}) == pytest.approx(0.8)
+
+    assert node_c.compute_conditional_probability(0, {"A": 0, "B": 0}) == pytest.approx(0.9)
+    assert node_c.compute_conditional_probability(1, {"A": 0, "B": 0}) == pytest.approx(0.1)
+    assert node_c.compute_conditional_probability(0, {"A": 0, "B": 1}) == pytest.approx(0.5)
+    assert node_c.compute_conditional_probability(1, {"A": 0, "B": 1}) == pytest.approx(0.5)
+    assert node_c.compute_conditional_probability(0, {"A": 1, "B": 0}) == pytest.approx(0.3)
+    assert node_c.compute_conditional_probability(1, {"A": 1, "B": 0}) == pytest.approx(0.7)
+    assert node_c.compute_conditional_probability(0, {"A": 1, "B": 1}) == pytest.approx(0.1)
+    assert node_c.compute_conditional_probability(1, {"A": 1, "B": 1}) == pytest.approx(0.9)
 

@@ -3,13 +3,6 @@ import numpy as np
 
 from cassandra.core import Node, Network
 
-@pytest.fixture
-def simple_nodes():
-    node_a = Node("A", [], np.array([0.6, 0.4]))
-    node_b = Node("B", [node_a], np.array([[0.7, 0.3], [0.2, 0.8]]))
-    node_c = Node("C", [node_a, node_b], np.array([[[0.9, 0.1], [0.5, 0.5]], [[0.3, 0.7], [0.1, 0.9]]]))
-    return node_a, node_b, node_c
-
 # __init__
 def test_init_invalid_nodes():
     with pytest.raises(ValueError):
@@ -27,7 +20,6 @@ def test_init_closed_network(simple_nodes):
     _, node_b, node_c = simple_nodes
     with pytest.raises(ValueError):
         Network([node_b, node_c])
-
 
 # get_cardinality
 def test_get_cardinality(simple_nodes):
@@ -59,10 +51,53 @@ def test_joint_probability_invalid_values(simple_nodes):
             'C': 2
         })
 
-def test_joint_probability(simple_nodes):
+def test_joint_probability_simple(simple_nodes):
     network = Network(list(simple_nodes))
+    # Assignment {A=0, B=0, C=0}:
+    # P(A=0) = 0.6
+    # P(B=0|A=0) = 0.7
+    # P(C=0|A=0, B=0) = 0.9
+    # => P(A=0, B=0, C=0) = 0.6 * 0.7 * 0.9 = 0.378
     assert np.isclose(network.joint_probability({
         'A': 0,
         'B': 0,
         'C': 0
     }), 0.378)
+    # Assignment {A=1, B=0, C=1}:
+    # P(A=1) = 0.4
+    # P(B=0|A=1) = 0.2
+    # P(C=1|A=1, B=0) = 0.7
+    # => P(A=0, B=0, C=0) = 0.4 * 0.2 * 0.7 = 0.056
+    assert np.isclose(network.joint_probability({
+        'A': 1,
+        'B': 0,
+        'C': 1
+    }), 0.056)
+
+def test_joint_probability_complex(complex_nodes):
+    network = Network(list(complex_nodes))
+    # Assignment {A=0, B=0, C=0, D=1}:
+    # P(A=0) = 0.6
+    # P(B=0|A=0) = 0.7
+    # P(C=0|A=0, B=0) = 0.9
+    # P(D=1|B=0, C=0) = 0.2
+    # => P(A=0, B=0, C=0, D=1) = 0.6 * 0.7 * 0.9 * 0.2 = 0.0756
+    assert np.isclose(network.joint_probability({
+        'A': 0,
+        'B': 0,
+        'C': 0,
+        'D': 1
+    }), 0.0756)
+    network = Network(list(complex_nodes))
+    # Assignment {A=1, B=0, C=1, D=0}:
+    # P(A=1) = 0.4
+    # P(B=0|A=1) = 0.2
+    # P(C=1|A=1, B=0) = 0.7
+    # P(D=0|B=0, C=1) = 0.4
+    # => P(A=0, B=0, C=0, D=1) = 0.4 * 0.2 * 0.7 * 0.4 = 0.0224
+    assert np.isclose(network.joint_probability({
+        'A': 1,
+        'B': 0,
+        'C': 1,
+        'D': 0
+    }), 0.0224)

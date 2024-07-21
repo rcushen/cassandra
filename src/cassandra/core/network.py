@@ -15,7 +15,8 @@ class Network:
 
     Methods:
     - get_cardinality: returns the number of nodes in the network
-    - get_variable_names: returns the variable names of the nodes in the network
+    - get_variable_names: returns a set of the variable names of the nodes in
+        the network
     - joint_probability: evaluates the joint probability of the network, given a
         full suite of evidence variables
 
@@ -63,7 +64,7 @@ class Network:
                 if parent_node not in nodes:
                     raise ValueError("The network is not closed")
         # 3. Check that the network is a directed acyclic graph
-        # (to be implemented)
+        # TODO: Implement this check
 
         self.nodes = { node.variable_name: node for node in nodes }
 
@@ -121,10 +122,14 @@ class Network:
 
         # Compute the joint probability
         prob = 1
-        for variable_name, node in self.nodes.items():
+        nodes = self.nodes
+        for variable_name, node in nodes.items():
             parent_variable_names = [parent_node.variable_name for parent_node in node.parent_nodes]
-
-            prob *= node.compute_conditional_probability(e[variable_name], { parent_variable_name: e[parent_variable_name] for parent_variable_name in parent_variable_names })
+            conditional_probability = node.compute_conditional_probability(
+                e[variable_name],
+                { parent_variable_name: e[parent_variable_name] for parent_variable_name in parent_variable_names }
+            )
+            prob *= conditional_probability
 
         return prob
 

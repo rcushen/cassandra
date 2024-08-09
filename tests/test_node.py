@@ -56,13 +56,6 @@ def test_get_cardinality(simple_nodes):
     assert node_b.get_cardinality() == 2
     assert node_c.get_cardinality() == 2
 
-# get_scope
-def test_get_scope(simple_nodes):
-    node_a, node_b, node_c = simple_nodes
-    assert node_a.get_scope() == ("A",)
-    assert node_b.get_scope() == ("A", "B")
-    assert node_c.get_scope() == ("A", "B", "C")
-
 # get_conditional_distribution
 def test_get_conditional_distribution_invalid_input(simple_nodes):
     _, node_b, _ = simple_nodes

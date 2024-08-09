@@ -34,18 +34,18 @@ def test_get_variable_names(simple_nodes):
 # joint_probability
 def test_joint_probability_bad_input(simple_nodes):
     network = Network(list(simple_nodes))
-    with pytest.raises(ValueError):
-        network.joint_probability(['A', 'B', 'C'])
+    with pytest.raises(TypeError):
+        network.evaluate_joint_probability(['A', 'B', 'C'])
 
 def test_joint_probability_missing_inputs(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
-        network.joint_probability({'A': 0, 'B': 1})
+        network.evaluate_joint_probability({'A': 0, 'B': 1})
 
 def test_joint_probability_invalid_values(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
-        network.joint_probability({
+        network.evaluate_joint_probability({
             'A': 0,
             'B': 1,
             'C': 2
@@ -58,7 +58,7 @@ def test_joint_probability_simple(simple_nodes):
     # P(B=0|A=0) = 0.7
     # P(C=0|A=0, B=0) = 0.9
     # => P(A=0, B=0, C=0) = 0.6 * 0.7 * 0.9 = 0.378
-    assert np.isclose(network.joint_probability({
+    assert np.isclose(network.evaluate_joint_probability({
         'A': 0,
         'B': 0,
         'C': 0
@@ -68,7 +68,7 @@ def test_joint_probability_simple(simple_nodes):
     # P(B=0|A=1) = 0.2
     # P(C=1|A=1, B=0) = 0.7
     # => P(A=0, B=0, C=0) = 0.4 * 0.2 * 0.7 = 0.056
-    assert np.isclose(network.joint_probability({
+    assert np.isclose(network.evaluate_joint_probability({
         'A': 1,
         'B': 0,
         'C': 1
@@ -82,7 +82,7 @@ def test_joint_probability_complex(complex_nodes):
     # P(C=0|A=0, B=0) = 0.9
     # P(D=1|B=0, C=0) = 0.2
     # => P(A=0, B=0, C=0, D=1) = 0.6 * 0.7 * 0.9 * 0.2 = 0.0756
-    assert np.isclose(network.joint_probability({
+    assert np.isclose(network.evaluate_joint_probability({
         'A': 0,
         'B': 0,
         'C': 0,
@@ -95,9 +95,37 @@ def test_joint_probability_complex(complex_nodes):
     # P(C=1|A=1, B=0) = 0.7
     # P(D=0|B=0, C=1) = 0.4
     # => P(A=0, B=0, C=0, D=1) = 0.4 * 0.2 * 0.7 * 0.4 = 0.0224
-    assert np.isclose(network.joint_probability({
+    assert np.isclose(network.evaluate_joint_probability({
         'A': 1,
         'B': 0,
         'C': 1,
         'D': 0
     }), 0.0224)
+
+# query
+def test_query_bad_input(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(TypeError):
+        network.query('A', {'B': 1})
+    with pytest.raises(TypeError):
+        network.query({'A'}, 'B')
+
+def test_query_no_query_vars(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(ValueError):
+        network.query(set(), {'A': 0})
+
+def test_query_overlap_vars(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(ValueError):
+        network.query({'A'}, {'A': 0})
+
+def test_query_invalid_vars(simple_nodes):
+    network = Network(list(simple_nodes))
+    with pytest.raises(ValueError):
+        network.query({'A', 'X'}, {'B': 1})
+
+def test_query_empty_network():
+    network = Network([])
+    with pytest.raises(ValueError):
+        network.query({'A'}, {'B': 0})  # Query on an empty network

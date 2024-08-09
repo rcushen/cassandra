@@ -1,3 +1,5 @@
+from .factor import Factor
+
 import numpy as np
 
 from functools import reduce
@@ -14,7 +16,8 @@ class Node:
 
     Attributes:
     - variable_name (str): the name of the variable
-    - parent_nodes (List[Node]): a list of parent nodes
+    - parent_nodes (List[Node]): a ordered list of parent nodes, aligned with the
+        dimensions of the CPD
     - cpd (np.Array): a (N+1)-dimensional numpy array representing the
         conditional probability distribution associated with the node, where
         each dimension N corresponds to a parent node and the last dimension
@@ -22,8 +25,6 @@ class Node:
 
     Methods:
     - get_cardinality: returns the number of possible states of the variable
-    - get_scope: returns a set of the variable name and the names of the parent
-        nodes
     - get_conditional_distribution: returns the conditional distribution of the node,
         given an assignment of observed states of all the parent variables
     - compute_conditional_probability: computes the conditional probability of the variable,
@@ -116,21 +117,6 @@ class Node:
         """
         return self.cpd.shape[-1]
 
-    def get_scope(self) -> set:
-        """
-        Returns a tuple of the parent variables and variable name, in line with
-        the order of the CPD.
-
-        Args: None
-
-        Raises: None
-
-        Returns: a tuple of strings representing the names of the parent nodes
-        and the variable name
-        """
-        scope = tuple(node.variable_name for node in self.parent_nodes) + (self.variable_name,)
-        return scope
-
     def get_conditional_distribution(self, parent_variable_assignment: dict[str, int]) -> np.ndarray:
         """
         Returns the conditional distribution of the node, given an assignment
@@ -199,3 +185,13 @@ class Node:
 
         return self.get_conditional_distribution(parent_variable_assignments)[variable_assignment]
 
+    def to_factor(self) -> Factor:
+        """
+        Returns an abstract factor representation of the node.
+
+        Args: None
+
+        Raises: None
+
+        Returns: a Factor representation of the node
+        """

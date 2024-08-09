@@ -17,7 +17,7 @@ class Network:
     - get_cardinality: returns the number of nodes in the network
     - get_variable_names: returns a set of the variable names of the nodes in
         the network
-    - joint_probability: evaluates the joint probability of the network, given a
+    - evaluate_joint_probability: evaluates the joint probability of the network, given a
         full suite of evidence variables
 
     """
@@ -68,7 +68,7 @@ class Network:
 
         self.nodes = { node.variable_name: node for node in nodes }
 
-    def get_cardinality(self):
+    def get_cardinality(self) -> int:
         """
         Returns the number of nodes in the network.
 
@@ -80,7 +80,7 @@ class Network:
         """
         return len(self.nodes)
 
-    def get_variable_names(self):
+    def get_variable_names(self) -> set[str]:
         """
         Returns the variable names of the nodes in the network.
 
@@ -93,7 +93,7 @@ class Network:
         """
         return set([node for node in self.nodes.keys()])
 
-    def joint_probability(self, e: dict[str, int]) -> float:
+    def evaluate_joint_probability(self, e: dict[str, int]) -> float:
         """
         Evaluates the joint probability of the network, given a full suite of
         evidence variables.
@@ -111,7 +111,7 @@ class Network:
         # Check validity of inputs
         # 0. Check variable types
         if not isinstance(e, dict):
-            raise ValueError("The evidence variables must be a dictionary")
+            raise TypeError("The evidence variables must be a dictionary")
         # 1. Check that the evidence variables are complete
         if set(e.keys()) != self.get_variable_names():
             raise ValueError("The evidence variables must be complete")
@@ -122,8 +122,7 @@ class Network:
 
         # Compute the joint probability
         prob = 1
-        nodes = self.nodes
-        for variable_name, node in nodes.items():
+        for variable_name, node in self.nodes.items():
             parent_variable_names = [parent_node.variable_name for parent_node in node.parent_nodes]
             conditional_probability = node.compute_conditional_probability(
                 e[variable_name],
@@ -147,5 +146,29 @@ class Network:
         Returns: a dictionary where the keys are the variable names of the query
         and the values are the probabilities of the query variables.
         """
+
+        # Check validity of inputs
+        # 0. Check variable types
+        if not isinstance(Y, set):
+            raise TypeError("The query variables must be a set")
+        if not isinstance(e, dict):
+            raise TypeError("The evidence variables must be a dictionary")
+        # 1. Check that there is at least one query variable
+        if len(Y) == 0:
+            raise ValueError("There must be at least one query variable")
+        # 2. Check that there is no overlap between query and evidence variables
+        if len(Y.intersection(e.keys())) > 0:
+            raise ValueError("The query and evidence variables must be disjoint")
+        # 3. Check that the union of the query and evidence variables is a subset
+        # of the network's variable names
+        if not Y.union(e.keys()).issubset(self.get_variable_names()):
+            raise ValueError("The query and evidence variables must be a subset of the network")
+
+        # Compute an elimination ordering
+
+
+        # Eliminate variables in the elimination ordering
+
         prob = 0
         return prob
+

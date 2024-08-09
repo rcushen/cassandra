@@ -93,18 +93,24 @@ def test_multiply_complex(simple_factor, complex_factor):
     np.testing.assert_array_almost_equal(result.values, expected_results)
 
 # sum_out
-# def test_sum_out_invalid_variable():
-#     factor = Factor(['A', 'B'], np.array([[0.1, 0.2], [0.3, 0.4]]))
-#     with pytest.raises(ValueError):
-#         sum_out(factor, 'C')
+## validation
+def test_sum_out_invalid_variable(simple_factor):
+    with pytest.raises(ValueError):
+        simple_factor.sum_out('C')
 
-# def test_sum_out_trivial():
-#     factor = Factor(['A'], np.array([0.1, 0.9]))
-#     with pytest.raises(ValueError):
-#         sum_out(factor, 'A')
+def test_sum_out_trivial():
+    factor = Factor(['A'], np.array([0.1, 0.9]))
+    with pytest.raises(ValueError):
+        factor.sum_out('A')
 
-# def test_sum_out_simple_1():
-#     factor = Factor(['A', 'B'], np.array([[0.1, 0.9], [0.8, 0.2]]))
-#     result = sum_out(factor, 'A')
-#     assert result.scope == ['B']
-#     np.testing.assert_array_almost_equal(result.probabilities, np.array([0.9, 1.1]))
+## correctness
+def test_sum_out_simple(simple_factor):
+    result = simple_factor.sum_out('A')
+    assert result.scope == ['B']
+    np.testing.assert_array_almost_equal(result.values, np.array([0.4, 0.6]))
+
+def test_sum_out_complex(complex_factor):
+    result = complex_factor.sum_out('B')
+    assert result.scope == ['A', 'C']
+    expected_results = np.array([[0.4, 0.6], [1.2, 1.4]])
+    np.testing.assert_array_almost_equal(result.values, expected_results)

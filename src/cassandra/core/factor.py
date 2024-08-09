@@ -134,32 +134,35 @@ class Factor:
         """
         return self.multiply(other)
 
-    # def sum_out(factor: Factor, variable: str) -> Factor:
-    #     """
-    #     Sums out a variable from a factor.
+    def sum_out(self, variable: str) -> 'Factor':
+        """
+        Sums out a variable from a factor.
 
-    #     Args:
-    #     - factor (Factor): the factor to sum out
-    #     - variable (str): the variable to sum out
+        Args:
+        - factor (Factor): the factor to sum out
 
-    #     Raises:
-    #     - ValueError: if the variable is not in the factor
-    #     - ValueError: if the variable is the only variable in the factor
+        Raises:
+        - ValueError: if the variable is not in the factor
+        - ValueError: if the variable is the only variable in the factor
 
-    #     Returns: a new factor with the variable summed out
-    #     """
-    #     # Check validity of inputs
-    #     # 0. Check that the variable is in the factor
-    #     if variable not in factor.scope:
-    #         raise ValueError("The variable to sum out is not in the factor")
+        Returns: a new factor with the variable summed out
+        """
+        # Check validity of inputs
+        # 0. Check that the variable is in the factor
+        if variable not in self.scope:
+            raise ValueError("The variable to sum out is not in the factor")
 
-    #     # Find the index of the variable to sum out
-    #     variable_index = factor.scope.index(variable)
+        # 1. Check that the variable is not the only variable in the factor
+        if len(self.scope) == 1:
+            raise ValueError("The variable is the only variable in the factor")
 
-    #     # Sum out the variable
-    #     new_probabilities = np.sum(factor.probabilities, axis=variable_index)
+        # Find the index of the variable to sum out
+        variable_index = self.scope.index(variable)
 
-    #     # Remove the variable from the list of scope
-    #     new_scope = [var for var in factor.scope if var != variable]
+        # Sum out the variable
+        new_values = np.sum(self.values, axis=variable_index)
 
-    #     return Factor(new_scope, new_probabilities)
+        # Remove the variable from the list of scope
+        new_scope = [var for var in self.scope if var != variable]
+
+        return Factor(new_scope, new_values)

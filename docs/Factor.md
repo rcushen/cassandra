@@ -18,4 +18,7 @@ The most basic operation is to evaluate a factor at a given assignment of values
 
 The product operation for factors is commutative and associative. It is equivalent to the Hadamard product of the values arrays of the two factors.
 
-Consider the product of two marginal distribution factors, \tau(a) and \tau(b), corresponding to P(a) and P(b). The product of these two factors, \tau(a) \times \tau(b), corresponds to the joint distribution P(a,b), and is obtained as the outer product of the two factors' values arrays. Obviously, this will not be a normalised distribution, as the values in the last dimension do not sum to 1.
+### Summing Out
+
+The summing out operation is used to remove a variable from the scope of a factor. This is done by summing over the variable's domain, and then marginalising out the variable.
+

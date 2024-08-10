@@ -21,7 +21,8 @@ class Node:
     - cpd (np.Array): a (N+1)-dimensional numpy array representing the
         conditional probability distribution associated with the node, where
         each dimension N corresponds to a parent node and the last dimension
-        corresponds to the variable itself
+        corresponds to the variable itself. This means that the last dimension
+        of the CPD will always sum to 1.
 
     Methods:
     - get_cardinality: returns the number of possible states of the variable
@@ -34,7 +35,7 @@ class Node:
     def __init__(
             self,
             variable_name: str,
-            parent_nodes: List,
+            parent_nodes: List["Node"],
             cpd: np.ndarray
             ) -> None:
         """
@@ -98,11 +99,8 @@ class Node:
         self.cpd = cpd
 
     def __repr__(self):
-        return """
-        Variable name: {}
-        Parent nodes: {}
-        CPD: {}
-        """.format(self.variable_name, self.parent_nodes, self.cpd)
+        parent_names = ', '.join(node.variable_name for node in self.parent_nodes)
+        return f"Node('{self.variable_name}', parents=[{parent_names}], states={self.get_cardinality()})"
 
     def get_cardinality(self) -> int:
         """
@@ -158,14 +156,14 @@ class Node:
         # Get the conditional distribution, i.e. index into the CPD
         return self.cpd[indices]
 
-    def compute_conditional_probability(self, variable_assignment: int, parent_variable_assignments: dict[str, int]) -> float:
+    def compute_conditional_probability(self, variable_assignment: int, parent_variable_assignment: dict[str, int]) -> float:
         """
         Computes the conditional probability of the variable given an
         assignment of parent variables and a particular state of the variable.
 
         Args:
         - variable_assignment (int): an integer representing the state of the variable
-        - parent_variable_assignments: a set of keyword arguments, where the keys are the names of
+        - parent_variable_assignment: a set of keyword arguments, where the keys are the names of
             the parent nodes and the values are the indices of the observed
             states of these parent nodes.
 
@@ -183,7 +181,7 @@ class Node:
         if variable_assignment < 0 or variable_assignment >= self.get_cardinality():
             raise ValueError(f"The variable assignment {variable_assignment} is invalid; it exceeds the number of states of the variable")
 
-        return self.get_conditional_distribution(parent_variable_assignments)[variable_assignment]
+        return self.get_conditional_distribution(parent_variable_assignment)[variable_assignment]
 
     def to_factor(self) -> Factor:
         """
@@ -195,3 +193,10 @@ class Node:
 
         Returns: a Factor representation of the node
         """
+        # Construct the scope of the factor
+        scope = [node.variable_name for node in self.parent_nodes] + [self.variable_name]
+
+        # Construct the values of the factor
+        values = self.cpd
+
+        return Factor(scope, values)

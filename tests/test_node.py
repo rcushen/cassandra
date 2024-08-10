@@ -4,6 +4,7 @@ import numpy as np
 from cassandra.core import Node
 
 # __init__
+## validation
 def test_init_valid_inputs(simple_nodes):
     node_a, _, _ = simple_nodes
     assert node_a.variable_name == "A"
@@ -50,6 +51,7 @@ def test_repr(simple_nodes):
     assert "CPD:" in repr_str
 
 # get_cardinality
+## correctness
 def test_get_cardinality(simple_nodes):
     node_a, node_b, node_c = simple_nodes
     assert node_a.get_cardinality() == 2
@@ -57,6 +59,7 @@ def test_get_cardinality(simple_nodes):
     assert node_c.get_cardinality() == 2
 
 # get_conditional_distribution
+## validation
 def test_get_conditional_distribution_invalid_input(simple_nodes):
     _, node_b, _ = simple_nodes
     with pytest.raises(ValueError):
@@ -77,6 +80,7 @@ def test_get_conditional_distribution_extra_parent(simple_nodes):
     with pytest.raises(ValueError):
         node_c.get_conditional_distribution({"A": 1, "B": 0, "D": 0})
 
+## correctness
 def test_get_conditional_distribution_no_parents(simple_nodes):
     node_a, _, _ = simple_nodes
     np.testing.assert_array_equal(node_a.get_conditional_distribution({}), np.array([0.6, 0.4]))
@@ -87,6 +91,7 @@ def test_get_conditional_distribution_with_parents(simple_nodes):
     np.testing.assert_array_equal(node_c.get_conditional_distribution({"A": 1, "B": 0}), np.array([0.3, 0.7]))
 
 # compute_conditional_probability
+## validation
 def test_compute_conditional_probability_invalid_input(simple_nodes):
     node_a, _, _ = simple_nodes
     with pytest.raises(ValueError):
@@ -107,6 +112,7 @@ def test_compute_conditional_probability_missing_parent(simple_nodes):
     with pytest.raises(ValueError):
         node_b.compute_conditional_probability(1, {})
 
+## correctness
 def test_compute_conditional_probability(simple_nodes):
     node_a, node_b, node_c = simple_nodes
 

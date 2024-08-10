@@ -139,7 +139,7 @@ class Factor:
         Sums out a variable from a factor.
 
         Args:
-        - factor (Factor): the factor to sum out
+        - variable (str): the variable to sum out
 
         Raises:
         - ValueError: if the variable is not in the factor
@@ -166,3 +166,26 @@ class Factor:
         new_scope = [var for var in self.scope if var != variable]
 
         return Factor(new_scope, new_values)
+
+    def normalise(self) -> None:
+        """
+        Normalises the factor by dividing by the sum of the values of the factor.
+
+        Args:
+        None
+
+        Raises:
+        - ValueError: if the sum of the values is zero
+
+        Returns: a new factor that is normalised
+        """
+        # Check validity of inputs
+        # 0. Check that the sum of the values is not zero
+        if np.sum(self.values) == 0:
+            raise ValueError("The sum of the values is zero")
+
+        # Normalise the values
+        new_values = self.values / np.sum(self.values)
+
+        # Update the values
+        self.values = new_values

@@ -46,9 +46,7 @@ def test_init_empty_parent_nodes_valid_cpd():
 def test_repr(simple_nodes):
     node_a, _, _ = simple_nodes
     repr_str = node_a.__repr__()
-    assert "Variable name: A" in repr_str
-    assert "Parent nodes: []" in repr_str
-    assert "CPD:" in repr_str
+    assert repr_str == "Node('A', parents=[], states=2)"
 
 # get_cardinality
 ## correctness

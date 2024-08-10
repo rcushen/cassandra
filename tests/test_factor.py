@@ -114,3 +114,10 @@ def test_sum_out_complex(complex_factor):
     assert result.scope == ['A', 'C']
     expected_results = np.array([[0.4, 0.6], [1.2, 1.4]])
     np.testing.assert_array_almost_equal(result.values, expected_results)
+
+# normalise
+## correctness
+def test_normalise_simple(simple_factor):
+    simple_factor.normalise()
+    np.testing.assert_array_almost_equal(simple_factor.values, np.array([[0.1, 0.2], [0.3, 0.4]]))
+

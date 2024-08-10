@@ -160,7 +160,7 @@ class Factor:
         variable_index = self.scope.index(variable)
 
         # Sum out the variable
-        new_values = np.sum(self.values, axis=variable_index)
+        new_values= np.sum(self.values, axis=variable_index)
 
         # Remove the variable from the list of scope
         new_scope = [var for var in self.scope if var != variable]

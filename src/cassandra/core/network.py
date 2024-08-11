@@ -18,8 +18,8 @@ class Network:
     - get_cardinality: returns the number of nodes in the network
     - get_variable_names: returns a set of the variable names of the nodes in
         the network
-    - evaluate_joint_probability: evaluates the joint probability of the network, given a
-        full suite of evidence variables
+    - evaluate_joint_probability: evaluates the joint probability of the
+        network, given a full suite of evidence variables
 
     """
 
@@ -143,7 +143,8 @@ class Network:
 
         Args:
         - Y (Set[str]): a set of variable names to query
-        - e (Dict[str, int]): a dictionary of evidence variables and their values
+        - e (Dict[str, int]): a dictionary of evidence variables and their
+            values
 
         Raises: None
 

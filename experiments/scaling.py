@@ -3,6 +3,7 @@ import time
 from cassandra.network import Node, BayesianNetwork
 from scipy.stats import norm
 
+
 def test_scaling():
     nodeA = Node(
         "A",
@@ -49,37 +50,24 @@ def test_scaling():
         equation=lambda v, p: p["state"] * (v["D"] + v["E"]),
     )
 
-    default_system_parameters = { "state": 1.0 }
+    default_system_parameters = {"state": 1.0}
 
     network = BayesianNetwork([nodeA])
     start_time = time.time()
-    inference1 = network.infer(
-        "A",
-        (-1, 1),
-        {},
-        default_system_parameters
-    )
+    inference1 = network.infer("A", (-1, 1), {}, default_system_parameters)
     end_time = time.time()
     print(f"Time for inference 1: {end_time - start_time}")
 
     network = BayesianNetwork([nodeA, nodeB, nodeC])
     start_time = time.time()
-    inference2 = network.infer(
-        "C",
-        (5, 9),
-        {"A": 0, "B": 3},
-        default_system_parameters
-    )
+    inference2 = network.infer("C", (5, 9), {"A": 0, "B": 3}, default_system_parameters)
     end_time = time.time()
     print(f"Time for inference 2: {end_time - start_time}")
 
     network = BayesianNetwork([nodeA, nodeB, nodeC, nodeD])
     start_time = time.time()
     inference3 = network.infer(
-        "D",
-        (-10, 10),
-        {"A": 0, "B": 4},
-        default_system_parameters
+        "D", (-10, 10), {"A": 0, "B": 4}, default_system_parameters
     )
     end_time = time.time()
     print(f"Time for inference 3: {end_time - start_time}")
@@ -87,10 +75,7 @@ def test_scaling():
     network = BayesianNetwork([nodeA, nodeB, nodeC, nodeD, nodeE])
     start_time = time.time()
     inference4 = network.infer(
-        "E",
-        (-10, 10),
-        {"A": 0, "B": 4},
-        default_system_parameters
+        "E", (-10, 10), {"A": 0, "B": 4}, default_system_parameters
     )
     end_time = time.time()
     print(f"Time for inference 4: {end_time - start_time}")

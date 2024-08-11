@@ -2,6 +2,7 @@ from .node import Node
 
 from typing import List
 
+
 class Network:
     """
     A Bayesian network.
@@ -21,10 +22,8 @@ class Network:
         full suite of evidence variables
 
     """
-    def __init__(
-            self,
-            nodes: List
-        ) -> None:
+
+    def __init__(self, nodes: List) -> None:
         """
         Initializes a Bayesian network, composed of nodes.
 
@@ -66,7 +65,7 @@ class Network:
         # 3. Check that the network is a directed acyclic graph
         # TODO: Implement this check
 
-        self.nodes = { node.variable_name: node for node in nodes }
+        self.nodes = {node.variable_name: node for node in nodes}
 
     def get_cardinality(self) -> int:
         """
@@ -123,10 +122,15 @@ class Network:
         # Compute the joint probability
         prob = 1
         for variable_name, node in self.nodes.items():
-            parent_variable_names = [parent_node.variable_name for parent_node in node.parent_nodes]
+            parent_variable_names = [
+                parent_node.variable_name for parent_node in node.parent_nodes
+            ]
             conditional_probability = node.compute_conditional_probability(
                 e[variable_name],
-                { parent_variable_name: e[parent_variable_name] for parent_variable_name in parent_variable_names }
+                {
+                    parent_variable_name: e[parent_variable_name]
+                    for parent_variable_name in parent_variable_names
+                },
             )
             prob *= conditional_probability
 
@@ -162,13 +166,13 @@ class Network:
         # 3. Check that the union of the query and evidence variables is a subset
         # of the network's variable names
         if not Y.union(e.keys()).issubset(self.get_variable_names()):
-            raise ValueError("The query and evidence variables must be a subset of the network")
+            raise ValueError(
+                "The query and evidence variables must be a subset of the network"
+            )
 
         # Compute an elimination ordering
-
 
         # Eliminate variables in the elimination ordering
 
         prob = 0
         return prob
-

@@ -2,6 +2,7 @@ import numpy as np
 
 from typing import List
 
+
 class Factor:
     """
     The general class for a factor, which is represented as an an array of
@@ -19,6 +20,7 @@ class Factor:
     - sum_out: sums out a variable from the factor and returns a new factor
     - normalise: normalises the factor
     """
+
     def __init__(self, scope: List[str], values: np.ndarray) -> None:
         """
         Initializes a factor.
@@ -53,7 +55,9 @@ class Factor:
         # 2. Check that the shape of the values is consistent with the scope
         n_scope = len(scope)
         if len(values.shape) != n_scope:
-            raise ValueError(f"There are {n_scope} scope, but the values array has {len(values.shape)} dimensions")
+            raise ValueError(
+                f"There are {n_scope} scope, but the values array has {len(values.shape)} dimensions"
+            )
 
         self.scope = scope
         self.values = values
@@ -86,7 +90,9 @@ class Factor:
         # 2. Check that the assignments are within the cardinality of the variables
         for variable_name, value in assignments.items():
             if value < 0 or value >= self.values.shape[self.scope.index(variable_name)]:
-                raise ValueError(f"The value {value} is invalid for variable {variable_name}")
+                raise ValueError(
+                    f"The value {value} is invalid for variable {variable_name}"
+                )
 
         # Find the indices of the assignments
         indices = [assignments[var] for var in self.scope]
@@ -94,7 +100,7 @@ class Factor:
         # Index into the values array
         return self.values[tuple(indices)]
 
-    def multiply(self, other: 'Factor') -> 'Factor':
+    def multiply(self, other: "Factor") -> "Factor":
         """
         Multiplies two factors together and returns a new, composite factor,
         with a scope that is the union of the scopes of the two factors.
@@ -116,8 +122,14 @@ class Factor:
         new_scope = self.scope + [var for var in other.scope if var not in self.scope]
 
         # Create new axes for broadcasting
-        self_extended_shape = [self.values.shape[self.scope.index(var)] if var in self.scope else 1 for var in new_scope]
-        other_extended_shape = [other.values.shape[other.scope.index(var)] if var in other.scope else 1 for var in new_scope]
+        self_extended_shape = [
+            self.values.shape[self.scope.index(var)] if var in self.scope else 1
+            for var in new_scope
+        ]
+        other_extended_shape = [
+            other.values.shape[other.scope.index(var)] if var in other.scope else 1
+            for var in new_scope
+        ]
 
         # Reshape the values arrays for broadcasting
         self_values_reshaped = self.values.reshape(self_extended_shape)
@@ -128,13 +140,13 @@ class Factor:
 
         return Factor(new_scope, new_values)
 
-    def __mul__(self, other: 'Factor') -> 'Factor':
+    def __mul__(self, other: "Factor") -> "Factor":
         """
         Overloads the multiplication operator to multiply two factors together.
         """
         return self.multiply(other)
 
-    def sum_out(self, variable: str) -> 'Factor':
+    def sum_out(self, variable: str) -> "Factor":
         """
         Sums out a variable from a factor.
 
@@ -160,7 +172,7 @@ class Factor:
         variable_index = self.scope.index(variable)
 
         # Sum out the variable
-        new_values= np.sum(self.values, axis=variable_index)
+        new_values = np.sum(self.values, axis=variable_index)
 
         # Remove the variable from the list of scope
         new_scope = [var for var in self.scope if var != variable]

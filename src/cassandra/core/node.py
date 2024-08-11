@@ -5,6 +5,7 @@ import numpy as np
 from functools import reduce
 from typing import List
 
+
 class Node:
     """
     A node in a Bayesian network.
@@ -32,12 +33,10 @@ class Node:
         given an assignment of parent variables and a particular state of the variable
 
     """
+
     def __init__(
-            self,
-            variable_name: str,
-            parent_nodes: List["Node"],
-            cpd: np.ndarray
-            ) -> None:
+        self, variable_name: str, parent_nodes: List["Node"], cpd: np.ndarray
+    ) -> None:
         """
         Initializes a node for a Bayesian network.
 
@@ -76,30 +75,40 @@ class Node:
 
         # 1. Check that the CPD is consistent with the parent nodes
         if len(parent_nodes) > 0:
-            parent_node_cardinalities = tuple(node.get_cardinality() for node in parent_nodes)
+            parent_node_cardinalities = tuple(
+                node.get_cardinality() for node in parent_nodes
+            )
             current_node_cardinality = cpd.shape[-1]
             expected_shape = parent_node_cardinalities + (current_node_cardinality,)
             if cpd.shape != expected_shape:
-                raise ValueError(f"The shape of the CPD is {cpd.shape}, but the expected shape is {expected_shape}")
+                raise ValueError(
+                    f"The shape of the CPD is {cpd.shape}, but the expected shape is {expected_shape}"
+                )
         else:
             if cpd.ndim != 1:
-                raise ValueError("The dimension of the CPD should be 1 if there are no parent nodes")
+                raise ValueError(
+                    "The dimension of the CPD should be 1 if there are no parent nodes"
+                )
 
         # 2. Check that each row in the CPD represents a valid probability distribution,
         #    i.e. the sum of the elements in each row should be equal to 1
         if len(parent_nodes) > 0:
             if not np.all(np.isclose(np.sum(cpd, axis=-1), 1)):
-                raise ValueError("The CPD does not represent a valid probability distribution")
+                raise ValueError(
+                    "The CPD does not represent a valid probability distribution"
+                )
         else:
             if not np.isclose(np.sum(cpd), 1):
-                raise ValueError("The CPD does not represent a valid probability distribution")
+                raise ValueError(
+                    "The CPD does not represent a valid probability distribution"
+                )
 
         self.variable_name = variable_name
         self.parent_nodes = parent_nodes
         self.cpd = cpd
 
     def __repr__(self):
-        parent_names = ', '.join(node.variable_name for node in self.parent_nodes)
+        parent_names = ", ".join(node.variable_name for node in self.parent_nodes)
         return f"Node('{self.variable_name}', parents=[{parent_names}], states={self.get_cardinality()})"
 
     def get_cardinality(self) -> int:
@@ -115,7 +124,9 @@ class Node:
         """
         return self.cpd.shape[-1]
 
-    def get_conditional_distribution(self, parent_variable_assignment: dict[str, int]) -> np.ndarray:
+    def get_conditional_distribution(
+        self, parent_variable_assignment: dict[str, int]
+    ) -> np.ndarray:
         """
         Returns the conditional distribution of the node, given an assignment
         of observed states of all the parent variables.
@@ -135,28 +146,46 @@ class Node:
         """
         # Validate inputs
         # 0. Check all inputs are integers
-        if not all(map(lambda x: isinstance(x, int), parent_variable_assignment.values())):
+        if not all(
+            map(lambda x: isinstance(x, int), parent_variable_assignment.values())
+        ):
             raise ValueError("All inputs should be integers")
 
         # 1. Check that all parent nodes are provided
-        if set(parent_variable_assignment.keys()) != set(map(lambda x: x.variable_name, self.parent_nodes)):
+        if set(parent_variable_assignment.keys()) != set(
+            map(lambda x: x.variable_name, self.parent_nodes)
+        ):
             raise ValueError("Not all parent nodes are provided")
 
         # 2. Check that the provided states are valid, i.e. the integers are
         #    within the range of the number of states of the parent nodes
-        parent_node_cardinalities = {node.variable_name: node.get_cardinality() for node in self.parent_nodes}
+        parent_node_cardinalities = {
+            node.variable_name: node.get_cardinality() for node in self.parent_nodes
+        }
         for item in parent_variable_assignment.items():
             variable_name, provided_index = item
-            if provided_index < 0 or provided_index >= parent_node_cardinalities[variable_name]:
-                raise ValueError(f"The state {provided_index} of parent node {variable_name} is invalid; it exceeds the number of states of the parent node")
+            if (
+                provided_index < 0
+                or provided_index >= parent_node_cardinalities[variable_name]
+            ):
+                raise ValueError(
+                    f"The state {provided_index} of parent node {variable_name} is invalid; it exceeds the number of states of the parent node"
+                )
 
         # Construct the correct order of the indices
-        indices = tuple(map(lambda node: parent_variable_assignment[node.variable_name], self.parent_nodes))
+        indices = tuple(
+            map(
+                lambda node: parent_variable_assignment[node.variable_name],
+                self.parent_nodes,
+            )
+        )
 
         # Get the conditional distribution, i.e. index into the CPD
         return self.cpd[indices]
 
-    def compute_conditional_probability(self, variable_assignment: int, parent_variable_assignment: dict[str, int]) -> float:
+    def compute_conditional_probability(
+        self, variable_assignment: int, parent_variable_assignment: dict[str, int]
+    ) -> float:
         """
         Computes the conditional probability of the variable given an
         assignment of parent variables and a particular state of the variable.
@@ -179,9 +208,13 @@ class Node:
             raise ValueError("The variable assignment should be an integer")
         # 1. Check that the variable assignment is a valid state
         if variable_assignment < 0 or variable_assignment >= self.get_cardinality():
-            raise ValueError(f"The variable assignment {variable_assignment} is invalid; it exceeds the number of states of the variable")
+            raise ValueError(
+                f"The variable assignment {variable_assignment} is invalid; it exceeds the number of states of the variable"
+            )
 
-        return self.get_conditional_distribution(parent_variable_assignment)[variable_assignment]
+        return self.get_conditional_distribution(parent_variable_assignment)[
+            variable_assignment
+        ]
 
     def to_factor(self) -> Factor:
         """
@@ -194,7 +227,9 @@ class Node:
         Returns: a Factor representation of the node
         """
         # Construct the scope of the factor
-        scope = [node.variable_name for node in self.parent_nodes] + [self.variable_name]
+        scope = [node.variable_name for node in self.parent_nodes] + [
+            self.variable_name
+        ]
 
         # Construct the values of the factor
         values = self.cpd

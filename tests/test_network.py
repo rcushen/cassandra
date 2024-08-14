@@ -101,33 +101,33 @@ def test_joint_probability_complex(complex_nodes):
 
 
 # query
-def test_query_bad_input(simple_nodes):
+def test_query_incorrect_input_types(simple_nodes):
     network = Network(list(simple_nodes))
+    with pytest.raises(TypeError):
+        network.query("A", "B")
     with pytest.raises(TypeError):
         network.query("A", {"B": 1})
     with pytest.raises(TypeError):
-        network.query({"A"}, "B")
-
+        network.query({"A": 2}, "B")
+    with pytest.raises(TypeError):
+        network.query({"A": "A"}, {"B": 1})
+    with pytest.raises(TypeError):
+        network.query({"A": 1}, {"B": "B"})
 
 def test_query_no_query_vars(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
-        network.query(set(), {"A": 0})
+        network.query({}, {"A": 0})
 
-
-def test_query_overlap_vars(simple_nodes):
+def test_query_overlapping_vars(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
-        network.query({"A"}, {"A": 0})
-
+        network.query({"A": 1}, {"A": 0})
 
 def test_query_invalid_vars(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
-        network.query({"A", "X"}, {"B": 1})
-
-
-def test_query_empty_network():
-    network = Network([])
+        network.query({"A": 1}, {"X": 1})
     with pytest.raises(ValueError):
-        network.query({"A"}, {"B": 0})  # Query on an empty network
+        network.query({"A": 1, "X": 2}, {"B": 1})
+

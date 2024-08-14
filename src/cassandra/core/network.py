@@ -142,7 +142,7 @@ class Network:
         variable elimination algorithm.
 
         Args:
-        - Y (Set[str]): a set of variable names to query
+        - Y (Dict[str, int]): a dictionary of query variables and their values
         - e (Dict[str, int]): a dictionary of evidence variables and their
             values
 
@@ -154,19 +154,23 @@ class Network:
 
         # Check validity of inputs
         # 0. Check variable types
-        if not isinstance(Y, set):
-            raise TypeError("The query variables must be a set")
+        if not isinstance(Y, dict):
+            raise TypeError("The query variables must be a dictionary")
         if not isinstance(e, dict):
             raise TypeError("The evidence variables must be a dictionary")
+        if not all(isinstance(value, int) for value in Y.values()):
+            raise TypeError("The query variables must be integers")
+        if not all(isinstance(value, int) for value in e.values()):
+            raise TypeError("The evidence variables must be integers")
         # 1. Check that there is at least one query variable
         if len(Y) == 0:
             raise ValueError("There must be at least one query variable")
         # 2. Check that there is no overlap between query and evidence variables
-        if len(Y.intersection(e.keys())) > 0:
+        if set(Y.keys()).intersection(e.keys()):
             raise ValueError("The query and evidence variables must be disjoint")
         # 3. Check that the union of the query and evidence variables is a subset
         # of the network's variable names
-        if not Y.union(e.keys()).issubset(self.get_variable_names()):
+        if not set(Y.keys()).union(e.keys()).issubset(self.get_variable_names()):
             raise ValueError(
                 "The query and evidence variables must be a subset of the network"
             )

@@ -1,4 +1,5 @@
 from .node import Node
+from .factor import Factor
 
 from typing import List
 
@@ -88,9 +89,20 @@ class Network:
         Raises: None
 
         Returns: a set of strings representing the variable names of the nodes
-
         """
-        return set([node for node in self.nodes.keys()])
+        return set([node_name for node_name in self.nodes.keys()])
+
+    def get_factors(self) -> list[Factor]:
+        """
+        Returns a set of factor representations for the network.
+
+        Args: None
+
+        Raises: None
+
+        Returns: a list of factors for the network
+        """
+        return set([node.to_factor() for node in self.nodes.values()])
 
     def evaluate_joint_probability(self, e: dict[str, int]) -> float:
         """
@@ -136,7 +148,7 @@ class Network:
 
         return prob
 
-    def query(self, Y, e):
+    def query(self, Y, e={}):
         """
         Evaluates a conditional probability query on the network, using the
         variable elimination algorithm.
@@ -175,9 +187,21 @@ class Network:
                 "The query and evidence variables must be a subset of the network"
             )
 
-        # Compute an elimination ordering
+        # Identify the elimination variables
+        elimination_vars = self.get_variable_names().difference(
+            set(Y.keys()).union(set(e.keys()))
+        )
+
+        # Select an elimination ordering
+        elimination_ordering = list(elimination_vars)
 
         # Eliminate variables in the elimination ordering
+        factors = self.get_factors()
+        for variable_name in elimination_ordering:
+            factors = sum_product_eliminate(factors, variable_name)
+
 
         prob = 0
         return prob
+
+

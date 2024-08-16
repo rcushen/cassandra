@@ -1,8 +1,7 @@
 import pytest
 import numpy as np
 
-from cassandra.core import Node
-
+from cassandra.core import Node, Network, Factor
 
 @pytest.fixture
 def simple_nodes():
@@ -31,7 +30,6 @@ def simple_nodes():
     )
 
     return node_a, node_b, node_c
-
 
 @pytest.fixture
 def complex_nodes():
@@ -74,3 +72,40 @@ def complex_nodes():
     )
 
     return node_a, node_b, node_c, node_d
+
+@pytest.fixture
+def simple_factor():
+    return Factor(["A", "B"], np.array([[0.1, 0.2], [0.3, 0.4]]))
+
+@pytest.fixture
+def complex_factor():
+    return Factor(
+        ["A", "B", "C"], np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
+    )
+
+@pytest.fixture
+def sequential_network():
+    # P(A=0) = 0.6
+    # P(A=1) = 0.4
+    node_a = Node("A", [], np.array([0.6, 0.4]))
+
+    # P(B=0|A=0) = 0.7
+    # P(B=1|A=0) = 0.3
+    # P(B=0|A=1) = 0.2
+    # P(B=1|A=1) = 0.8
+    node_b = Node("B", [node_a], np.array([[0.7, 0.3], [0.2, 0.8]]))
+
+    # P(C=0|B=0) = 0.5
+    # P(C=1|B=0) = 0.5
+    # P(C=0|B=1) = 0.4
+    # P(C=1|B=1) = 0.6
+    node_c = Node("C", [node_b], np.array([[0.5, 0.5], [0.4, 0.6]]))
+
+    # P(D=0|C=0) = 0.1
+    # P(D=1|C=0) = 0.9
+    # P(D=0|C=1) = 0.8
+    # P(D=1|C=1) = 0.2
+    node_d = Node("D", [node_c], np.array([[0.1, 0.9], [0.8, 0.2]]))
+
+    sequential_network = Network([node_a, node_b, node_c, node_d])
+    return sequential_network

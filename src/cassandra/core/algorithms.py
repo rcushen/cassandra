@@ -29,18 +29,12 @@ def sum_product_eliminate(factors: set[Factor], variable_name: str) -> set[Facto
 
     # Separate the relevant and irrelevant factors
     relevant_factors = [factor for factor in list(factors) if variable_name in factor.scope]
-    print(f"Relevant factors: {[factor.scope for factor in relevant_factors]}")
     irrelevant_factors = [factor for factor in list(factors) if variable_name not in factor.scope]
-    print(f"Irrelevant factors: {[factor.scope for factor in irrelevant_factors]}")
 
     # Multiply all the relevant factors together
     phi = reduce(lambda x, y: x.multiply(y), relevant_factors)
-    print("Product of relevant factors:")
-    print(phi.values)
 
     # Sum out the variable
     tau = phi.sum_out(variable_name)
-    print("Summed out factor:")
-    print(tau.values)
 
     return set(irrelevant_factors + [tau])

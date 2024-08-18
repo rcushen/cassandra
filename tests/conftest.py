@@ -91,29 +91,10 @@ def complex_nodes():
 
     return node_a, node_b, node_c, node_d
 
-# Networks
 @pytest.fixture
-def simple_network(simple_nodes):
+def sequential_nodes():
     """
-    A network constructed from the set of simple nodes.
-    """
-    node_a, node_b, node_c = simple_nodes
-    simple_network = Network([node_a, node_b, node_c])
-    return simple_network
-
-@pytest.fixture
-def complex_network(complex_nodes):
-    """
-    A network constructed from the set of complex nodes.
-    """
-    node_a, node_b, node_c, node_d = complex_nodes
-    complex_network = Network([node_a, node_b, node_c, node_d])
-    return complex_network
-
-@pytest.fixture
-def sequential_network():
-    """
-    A four-node network with sequential dependencies.
+    A simple collection of four nodes with sequential dependencies.
     """
     # P(A=0) = 0.6
     # P(A=1) = 0.4
@@ -137,5 +118,32 @@ def sequential_network():
     # P(D=1|C=1) = 0.2
     node_d = Node("D", [node_c], np.array([[0.1, 0.9], [0.8, 0.2]]))
 
+    return node_a, node_b, node_c, node_d
+
+# Networks
+@pytest.fixture
+def simple_network(simple_nodes):
+    """
+    A network constructed from the set of simple nodes.
+    """
+    node_a, node_b, node_c = simple_nodes
+    simple_network = Network([node_a, node_b, node_c])
+    return simple_network
+
+@pytest.fixture
+def complex_network(complex_nodes):
+    """
+    A network constructed from the set of complex nodes.
+    """
+    node_a, node_b, node_c, node_d = complex_nodes
+    complex_network = Network([node_a, node_b, node_c, node_d])
+    return complex_network
+
+@pytest.fixture
+def sequential_network(sequential_nodes):
+    """
+    A four-node network with sequential dependencies.
+    """
+    node_a, node_b, node_c, node_d = sequential_nodes
     sequential_network = Network([node_a, node_b, node_c, node_d])
     return sequential_network

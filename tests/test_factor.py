@@ -67,6 +67,7 @@ def test__evaluate__simple():
     expected_result = 0.1
     assert factor.evaluate({"A": 0, "B": 0}) == expected_result
 
+
 # multiply
 ## validation
 def test__multiply__invalid_factor_type(simple_factor):

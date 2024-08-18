@@ -12,10 +12,11 @@ def test__sum_product_eliminate__invalid_factors():
 ## correctness
 def test__sum_product_eliminate__case_1(simple_factor):
     factors = {simple_factor}
-    reduced_factors = sum_product_eliminate(factors, "A")
-    resulting_single_factor = list(reduced_factors)[0]
+    result = sum_product_eliminate(factors, "A")
 
-    assert len(reduced_factors) == 1
+    resulting_single_factor = list(result)[0]
+
+    assert len(result) == 1
     assert resulting_single_factor.scope == ["B"]
 
     expected_values = np.array([0.4, 0.6])
@@ -26,10 +27,11 @@ def test__sum_product_eliminate__case_1(simple_factor):
 
 def test__sum_product_eliminate__case_2(simple_factor, complex_factor):
     factors = {simple_factor, complex_factor}
-    reduced_factors = sum_product_eliminate(factors, "A")
-    resulting_single_factor = list(reduced_factors)[0]
+    result = sum_product_eliminate(factors, "A")
 
-    assert len(reduced_factors) == 1
+    resulting_single_factor = list(result)[0]
+
+    assert len(result) == 1
     assert resulting_single_factor.scope == ["B", "C"]
 
     expected_values = np.array([[.16, 0.2], [0.34, 0.4]])

@@ -10,7 +10,7 @@ def test__sum_product_eliminate__invalid_factors():
         sum_product_eliminate(["factor", "factor"], "A")
 
 ## correctness
-def test__sum_product_eliminate__case_1(simple_factor):
+def test__sum_product_eliminate__case_1_1(simple_factor):
     factors = {simple_factor}
     result = sum_product_eliminate(factors, "A")
 
@@ -25,7 +25,7 @@ def test__sum_product_eliminate__case_1(simple_factor):
         expected_values
     )
 
-def test__sum_product_eliminate__case_2(simple_factor, complex_factor):
+def test__sum_product_eliminate__case_1_2(simple_factor, complex_factor):
     factors = {simple_factor, complex_factor}
     result = sum_product_eliminate(factors, "A")
 
@@ -40,7 +40,7 @@ def test__sum_product_eliminate__case_2(simple_factor, complex_factor):
         expected_values
     )
 
-def test__sum_product_eliminate__case_3(simple_nodes):
+def test__sum_product_eliminate__case_2_1(simple_nodes):
     factors = {node.to_factor() for node in simple_nodes}
     result = sum_product_eliminate(factors, "C")
 
@@ -52,7 +52,7 @@ def test__sum_product_eliminate__case_3(simple_nodes):
     }
     assert result == expected_result
 
-def test__sum_product_eliminate__case_4(simple_nodes):
+def test__sum_product_eliminate__case_2_1(simple_nodes):
     factors = {node.to_factor() for node in simple_nodes}
     result = sum_product_eliminate(factors, "B")
 
@@ -63,8 +63,15 @@ def test__sum_product_eliminate__case_4(simple_nodes):
     }
     assert result == expected_result
 
+def test__sum_product_eliminate__case_2_3(simple_nodes):
+    factors = {node.to_factor() for node in simple_nodes}
+    result = sum_product_eliminate(factors, "A")
 
+    expected_result = {
+        Factor(["B", "C"], np.array([[0.402, 0.098], [0.122, 0.378]]))
+    }
 
+    assert result == expected_result
 
 
 

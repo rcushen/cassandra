@@ -1,23 +1,24 @@
 import numpy as np
-from functools import reduce
 
 from typing import List
 
 
 class Factor:
     """
-    The general class for a factor, which is represented as an an array of
-    (unnormalised) pseudo-probabilities corresponding to an ordered list of
-    variables, referred to as the factor scope.
+    The general class for a factor, which is represented as an an N-dimensional
+    array of (unnormalised) pseudo-probabilities, with each dimension
+    corresponding to a variable in the factor scope.
 
     Attributes:
     - scope (List[str]): an ordered list of variable names
     - values (np.ndarray): an array of pseduo-probabilities, where the shape
-        is determined by the cardinality of the variables
+        is determined by the cardinality of the variables, and the
+        dimensionality aligns with the factor scope.
 
     Methods:
     - evaluate: evaluates the factor given a set of assignments to the variables
-    - multiply: multiplies the factor with another factor and returns a new factor
+    - multiply: multiplies the factor with another factor and returns a new
+        factor
     - sum_out: sums out a variable from the factor and returns a new factor
     - normalise: normalises the factor
     """
@@ -28,12 +29,11 @@ class Factor:
 
         Args:
         - scope (List[str]): a list of variable names
-        - values (np.ndarray): an array of pseudo-probabilities, where the shape
-            is determined by the cardinality of the scope
+        - values (np.ndarray): an array of pseudo-probabilities
 
         Raises:
-        - ValueError: if the scope are not a list
-        - ValueError: if the values are not a numpy array
+        - ValueError: if the scope is not a list of unique strings
+        - ValueError: if the values are not a numpy array of floats
         - ValueError: if the shape of the values is not consistent with the scope
 
         Returns: None
@@ -54,14 +54,40 @@ class Factor:
             raise ValueError("The scope must be unique")
 
         # 2. Check that the shape of the values is consistent with the scope
-        n_scope = len(scope)
-        if len(values.shape) != n_scope:
+        n_variables = len(scope)
+        if len(values.shape) != n_variables:
             raise ValueError(
-                f"There are {n_scope} scope, but the values array has {len(values.shape)} dimensions"
+                f"There are {n_variables} variables in the scope, but the values array has {len(values.shape)} dimensions"
             )
 
         self.scope = scope
         self.values = values
+
+    def __eq__(self, other: "Factor") -> bool:
+        """
+        Overloads the equality operator to compare two factors.
+        """
+        return self.scope == other.scope and np.allclose(self.values, other.values)
+
+    def __hash__(self) -> int:
+        """
+        Overloads the hash function to hash the factor.
+        """
+        scope = tuple(self.scope)
+        values_rounded = np.round(self.values, decimals=10)
+        return hash((scope, values_rounded.tobytes()))
+
+    def __repr__(self) -> str:
+        """
+        Overloads the string representation of the factor.
+        """
+        return f"Factor({self.scope}, {self.values.shape})"
+
+    def __mul__(self, other: "Factor") -> "Factor":
+        """
+        Overloads the multiplication operator to multiply two factors together.
+        """
+        return self.multiply(other)
 
     def evaluate(self, assignments: dict[str, int]) -> float:
         """
@@ -110,7 +136,7 @@ class Factor:
         - other (Factor): the other factor to multiply
 
         Raises:
-        None
+        - ValueError: if the other factor is not a Factor
 
         Returns: a new factor that is the product of the two factors
         """
@@ -140,12 +166,6 @@ class Factor:
         new_values = self_values_reshaped * other_values_reshaped
 
         return Factor(new_scope, new_values)
-
-    def __mul__(self, other: "Factor") -> "Factor":
-        """
-        Overloads the multiplication operator to multiply two factors together.
-        """
-        return self.multiply(other)
 
     def sum_out(self, variable: str) -> "Factor":
         """
@@ -180,15 +200,10 @@ class Factor:
 
         return Factor(new_scope, new_values)
 
-    def normalise(self) -> None:
+    def normalise(self, n_dimensions=1) -> None:
         """
-        Normalises the factor by dividing by the sum of the values of the factor.
-
-        If the factor has multiple dimensions, the normalisation is done over all
-        the dimensions, resulting in a multi-dimensional probability distribution.
-
-        If the factor has just a single dimension, the normalisation is done over
-        that single dimension, resulting in a univariate probability distribution.
+        Normalises the factor by dividing by the sum of (some of) the values of
+        the factor.
 
         Args:
         None
@@ -199,56 +214,27 @@ class Factor:
         Returns: a new factor that is normalised
         """
         # Check validity of inputs
-        # 0. Check that the sum of the values is not zero
-        if np.sum(self.values) == 0:
-            raise ValueError("The sum of the values is zero")
+        # 0. Check that the n_dimensions is an integer
+        if not isinstance(n_dimensions, int):
+            raise ValueError("The number of dimensions to normalise over must be an integer")
 
-        # Normalise the values
-        new_values = self.values / np.sum(self.values)
+        # 1. Check that the n_dimensions conforms to the dimensions of the values
+        if n_dimensions <= 0 or n_dimensions > self.values.ndim:
+            raise ValueError("n_dimensions must be between 1 and the number of dimensions in the array")
+
+        # Calculate the sum along the last n_dimensions dimensions
+        sum_axes = tuple(range(self.values.ndim - n_dimensions, self.values.ndim))
+        sums = np.sum(self.values, axis=sum_axes, keepdims=True)
+
+        # Avoid division by zero
+        sums = np.where(sums == 0, 1, sums)
+
+        # Normalize the array
+        normalised_values = self.values / sums
 
         # Update the values
-        self.values = new_values
+        self.values = normalised_values
+
+        return None
 
 
-def sum_product_eliminate(factors: set[Factor], variable_name: str) -> set[Factor]:
-    """
-    Eliminates a variable from a set of factors using the sum-product algorithm.
-
-    Args:
-    - factors (Set[Factor]): a set of factors to eliminate
-    - variable_name (str): the name of the variable to eliminate
-
-    Raises: None
-
-    Returns: a set of factors after eliminating the variable
-    """
-
-    # Validate inputs
-    # 0. Check variable types
-    if not isinstance(factors, set):
-        raise ValueError("The factors must be a set")
-    if not all(isinstance(factor, Factor) for factor in factors):
-        raise ValueError("The factors must be instances of the Factor class")
-    if not isinstance(variable_name, str):
-        raise ValueError("The variable name must be a string")
-    # 1. Check that the variable is in at least one of the factors
-    if not any(variable_name in factor.scope for factor in factors):
-        raise ValueError("The variable is not in any of the factors")
-
-    # Separate the relevant and irrelevant factors
-    relevant_factors = [factor for factor in list(factors) if variable_name in factor.scope]
-    print(f"Relevant factors: {[factor.scope for factor in relevant_factors]}")
-    irrelevant_factors = [factor for factor in list(factors) if variable_name not in factor.scope]
-    print(f"Irrelevant factors: {[factor.scope for factor in irrelevant_factors]}")
-
-    # Multiply all the relevant factors together
-    phi = reduce(lambda x, y: x.multiply(y), relevant_factors)
-    print("Product of relevant factors:")
-    print(phi.values)
-
-    # Sum out the variable
-    tau = phi.sum_out(variable_name)
-    print("Summed out factor:")
-    print(tau.values)
-
-    return set(irrelevant_factors + [tau])

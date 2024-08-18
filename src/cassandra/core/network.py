@@ -200,8 +200,5 @@ class Network:
         for variable_name in elimination_ordering:
             factors = sum_product_eliminate(factors, variable_name)
 
-
         prob = 0
         return prob
-
-

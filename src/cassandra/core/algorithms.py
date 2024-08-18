@@ -2,6 +2,7 @@ from .factor import Factor
 
 from functools import reduce
 
+
 def sum_product_eliminate(factors: set[Factor], variable_name: str) -> set[Factor]:
     """
     Eliminates a variable from a set of factors using the sum-product algorithm.
@@ -28,8 +29,12 @@ def sum_product_eliminate(factors: set[Factor], variable_name: str) -> set[Facto
         raise ValueError("The variable is not in any of the factors")
 
     # Separate the relevant and irrelevant factors
-    relevant_factors = [factor for factor in list(factors) if variable_name in factor.scope]
-    irrelevant_factors = [factor for factor in list(factors) if variable_name not in factor.scope]
+    relevant_factors = [
+        factor for factor in list(factors) if variable_name in factor.scope
+    ]
+    irrelevant_factors = [
+        factor for factor in list(factors) if variable_name not in factor.scope
+    ]
 
     # Multiply all the relevant factors together
     phi = reduce(lambda x, y: x.multiply(y), relevant_factors)

@@ -3,16 +3,19 @@ import numpy as np
 
 from cassandra.core import Node, Network, Factor
 
+
 # Factors
 @pytest.fixture
 def simple_factor():
     return Factor(["A", "B"], np.array([[0.1, 0.2], [0.3, 0.4]]))
+
 
 @pytest.fixture
 def complex_factor():
     return Factor(
         ["A", "B", "C"], np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
     )
+
 
 # Nodes
 @pytest.fixture
@@ -45,6 +48,7 @@ def simple_nodes():
     )
 
     return node_a, node_b, node_c
+
 
 @pytest.fixture
 def complex_nodes():
@@ -91,6 +95,7 @@ def complex_nodes():
 
     return node_a, node_b, node_c, node_d
 
+
 @pytest.fixture
 def sequential_nodes():
     """
@@ -120,6 +125,7 @@ def sequential_nodes():
 
     return node_a, node_b, node_c, node_d
 
+
 # Networks
 @pytest.fixture
 def simple_network(simple_nodes):
@@ -130,6 +136,7 @@ def simple_network(simple_nodes):
     simple_network = Network([node_a, node_b, node_c])
     return simple_network
 
+
 @pytest.fixture
 def complex_network(complex_nodes):
     """
@@ -138,6 +145,7 @@ def complex_network(complex_nodes):
     node_a, node_b, node_c, node_d = complex_nodes
     complex_network = Network([node_a, node_b, node_c, node_d])
     return complex_network
+
 
 @pytest.fixture
 def sequential_network(sequential_nodes):

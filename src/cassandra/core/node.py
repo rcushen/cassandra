@@ -31,6 +31,7 @@ class Node:
         given an assignment of observed states of all the parent variables
     - compute_conditional_probability: computes the conditional probability of the variable,
         given an assignment of parent variables and a particular state of the variable
+    - to_factor: returns an abstract factor representation of the node
 
     """
 

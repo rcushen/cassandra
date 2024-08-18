@@ -216,11 +216,15 @@ class Factor:
         # Check validity of inputs
         # 0. Check that the n_dimensions is an integer
         if not isinstance(n_dimensions, int):
-            raise ValueError("The number of dimensions to normalise over must be an integer")
+            raise ValueError(
+                "The number of dimensions to normalise over must be an integer"
+            )
 
         # 1. Check that the n_dimensions conforms to the dimensions of the values
         if n_dimensions <= 0 or n_dimensions > self.values.ndim:
-            raise ValueError("n_dimensions must be between 1 and the number of dimensions in the array")
+            raise ValueError(
+                "n_dimensions must be between 1 and the number of dimensions in the array"
+            )
 
         # Calculate the sum along the last n_dimensions dimensions
         sum_axes = tuple(range(self.values.ndim - n_dimensions, self.values.ndim))
@@ -236,5 +240,3 @@ class Factor:
         self.values = normalised_values
 
         return None
-
-

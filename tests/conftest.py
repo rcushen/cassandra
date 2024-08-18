@@ -3,8 +3,23 @@ import numpy as np
 
 from cassandra.core import Node, Network, Factor
 
+# Factors
+@pytest.fixture
+def simple_factor():
+    return Factor(["A", "B"], np.array([[0.1, 0.2], [0.3, 0.4]]))
+
+@pytest.fixture
+def complex_factor():
+    return Factor(
+        ["A", "B", "C"], np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
+    )
+
+# Nodes
 @pytest.fixture
 def simple_nodes():
+    """
+    A simple collection of three nodes, with limited dependencies
+    """
     # P(A=0) = 0.6
     # P(A=1) = 0.4
     node_a = Node("A", [], np.array([0.6, 0.4]))
@@ -33,6 +48,9 @@ def simple_nodes():
 
 @pytest.fixture
 def complex_nodes():
+    """
+    A more complex collection of four nodes with greater dependencies.
+    """
     # P(A=0) = 0.6
     # P(A=1) = 0.4
     node_a = Node("A", [], np.array([0.6, 0.4]))
@@ -73,18 +91,30 @@ def complex_nodes():
 
     return node_a, node_b, node_c, node_d
 
+# Networks
 @pytest.fixture
-def simple_factor():
-    return Factor(["A", "B"], np.array([[0.1, 0.2], [0.3, 0.4]]))
+def simple_network(simple_nodes):
+    """
+    A network constructed from the set of simple nodes.
+    """
+    node_a, node_b, node_c = simple_nodes
+    simple_network = Network([node_a, node_b, node_c])
+    return simple_network
 
 @pytest.fixture
-def complex_factor():
-    return Factor(
-        ["A", "B", "C"], np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
-    )
+def complex_network(complex_nodes):
+    """
+    A network constructed from the set of complex nodes.
+    """
+    node_a, node_b, node_c, node_d = complex_nodes
+    complex_network = Network([node_a, node_b, node_c, node_d])
+    return complex_network
 
 @pytest.fixture
 def sequential_network():
+    """
+    A four-node network with sequential dependencies.
+    """
     # P(A=0) = 0.6
     # P(A=1) = 0.4
     node_a = Node("A", [], np.array([0.6, 0.4]))

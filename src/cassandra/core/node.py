@@ -16,10 +16,10 @@ class Node:
     nodes.
 
     Attributes:
-    - variable_name (str): the name of the variable
+    - variable_name (str): the name of the associated variable
     - parent_nodes (List[Node]): a ordered list of parent nodes, aligned with the
         dimensions of the CPD
-    - cpd (np.Array): a (N+1)-dimensional numpy array representing the
+    - cpd (np.Array): an (N+1)-dimensional numpy array representing the
         conditional probability distribution associated with the node, where
         each dimension N corresponds to a parent node and the last dimension
         corresponds to the variable itself. This means that the last dimension
@@ -55,9 +55,9 @@ class Node:
             corresponds to the variable itself.
 
         Raises:
-        - ValueError: if the CPD is not a numpy array
+        - ValueError: if the CPD is not a numpy array of floats
         - ValueError: if the variable name is not a string or is too long
-        - ValueError: if the parent nodes are not a list
+        - ValueError: if the parent nodes are not a list of nodes
         - ValueError: if the shape of the CPD is inconsistent with the parent nodes
         - ValueError: if the CPD does not represent a valid probability distribution
 
@@ -65,8 +65,8 @@ class Node:
         """
         # Check validity of inputs
         # 0. Check variable types
-        if not isinstance(cpd, np.ndarray):
-            raise ValueError("The CPD must be a numpy array")
+        if not (isinstance(cpd, np.ndarray) and cpd.dtype == np.float64):
+            raise ValueError("The CPD must be a numpy array of floats")
         if not isinstance(variable_name, str):
             raise ValueError("The variable name must be a string")
         if len(variable_name) == 0 or len(variable_name) > 20:
@@ -108,7 +108,7 @@ class Node:
         self.parent_nodes = parent_nodes
         self.cpd = cpd
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         parent_names = ", ".join(node.variable_name for node in self.parent_nodes)
         return f"Node('{self.variable_name}', parents=[{parent_names}], states={self.get_cardinality()})"
 
@@ -172,6 +172,10 @@ class Node:
                 raise ValueError(
                     f"The state {provided_index} of parent node {variable_name} is invalid; it exceeds the number of states of the parent node"
                 )
+
+        # If there are no parent nodes, return the marginal distribution
+        if len(self.parent_nodes) == 0:
+            return self.cpd
 
         # Construct the correct order of the indices
         indices = tuple(

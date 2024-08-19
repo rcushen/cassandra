@@ -5,61 +5,60 @@ from cassandra.core import Node, Network
 
 
 # __init__
-def test_init_invalid_nodes():
+## validation
+def test__init__invalid_nodes():
     with pytest.raises(ValueError):
         Network("network")
 
-
-def test_init_invalid_node_types():
+def test__init__invalid_node_types():
     with pytest.raises(ValueError):
         Network([1, 2, 3])
 
-
-def test_init_nodes_unique(simple_nodes):
+def test__init__nodes_unique(simple_nodes):
     with pytest.raises(ValueError):
         Network(list(simple_nodes) + list(simple_nodes))
 
-
-def test_init_closed_network(simple_nodes):
+def test__init__closed_network(simple_nodes):
     _, node_b, node_c = simple_nodes
     with pytest.raises(ValueError):
         Network([node_b, node_c])
 
 
 # get_cardinality
-def test_get_cardinality(simple_nodes):
+## correctness
+def test__get_cardinality__simple(simple_nodes):
     network = Network(list(simple_nodes))
     assert network.get_cardinality() == 3
 
 
 # get_variable_names
-def test_get_variable_names(simple_nodes):
+## correctness
+def test__get_variable_names__simple(simple_nodes, complex_nodes):
     network = Network(list(simple_nodes))
     assert network.get_variable_names() == set(["A", "B", "C"])
+    network = Network(list(complex_nodes))
+    assert network.get_variable_names() == set(["A", "B", "C", "D"])
 
 
 # joint_probability
 ## validation
-def test_joint_probability_bad_input(simple_nodes):
+def test__joint_probability__bad_input(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(TypeError):
         network.evaluate_joint_probability(["A", "B", "C"])
 
-
-def test_joint_probability_missing_inputs(simple_nodes):
+def test__joint_probability__missing_inputs(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
         network.evaluate_joint_probability({"A": 0, "B": 1})
 
-
-def test_joint_probability_invalid_values(simple_nodes):
+def test__joint_probability__invalid_values(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
         network.evaluate_joint_probability({"A": 0, "B": 1, "C": 2})
 
-
 ## correctness
-def test_joint_probability_simple(simple_nodes):
+def test__joint_probability__simple(simple_nodes):
     network = Network(list(simple_nodes))
     # Assignment {A=0, B=0, C=0}:
     # P(A=0) = 0.6
@@ -78,8 +77,7 @@ def test_joint_probability_simple(simple_nodes):
         network.evaluate_joint_probability({"A": 1, "B": 0, "C": 1}), 0.056
     )
 
-
-def test_joint_probability_complex(complex_nodes):
+def test__joint_probability__complex(complex_nodes):
     network = Network(list(complex_nodes))
     # Assignment {A=0, B=0, C=0, D=1}:
     # P(A=0) = 0.6
@@ -104,7 +102,7 @@ def test_joint_probability_complex(complex_nodes):
 
 # query
 ## validation
-def test_query_incorrect_input_types(simple_nodes):
+def test__query__incorrect_input_types(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(TypeError):
         network.query("A", "B")
@@ -117,26 +115,22 @@ def test_query_incorrect_input_types(simple_nodes):
     with pytest.raises(TypeError):
         network.query({"A": 1}, {"B": "B"})
 
-
-def test_query_no_query_vars(simple_nodes):
+def test__query__no_query_vars(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
         network.query({}, {"A": 0})
 
-
-def test_query_overlapping_vars(simple_nodes):
+def test__query__overlapping_vars(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
         network.query({"A": 1}, {"A": 0})
 
-
-def test_query_invalid_vars(simple_nodes):
+def test__query__invalid_vars(simple_nodes):
     network = Network(list(simple_nodes))
     with pytest.raises(ValueError):
         network.query({"A": 1}, {"X": 1})
     with pytest.raises(ValueError):
         network.query({"A": 1, "X": 2}, {"B": 1})
-
 
 ## correctness
 # def test_sequential_network_1(sequential_network):

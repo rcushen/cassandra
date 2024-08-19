@@ -158,7 +158,13 @@ class Network:
         - e (Dict[str, int]): a dictionary of evidence variables and their
             values
 
-        Raises: None
+        Raises:
+        - TypeError: if the query variables are not a dictionary
+        - TypeError: if the evidence variables are not a dictionary
+        - TypeError: if the query variables are not integers
+        - TypeError: if the evidence variables are not integers
+        - ValueError: if there are no query variables
+        - ValueError: if there is overlap between query and evidence variables
 
         Returns: a dictionary where the keys are the variable names of the query
         and the values are the probabilities of the query variables.

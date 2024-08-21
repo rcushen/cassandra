@@ -21,6 +21,7 @@ class Factor:
         factor
     - sum_out: sums out a variable from the factor and returns a new factor
     - normalise: normalises the factor
+    - reorder: reorders the variables in the factor scope
     """
 
     def __init__(self, scope: List[str], values: np.ndarray) -> None:
@@ -238,5 +239,36 @@ class Factor:
 
         # Update the values
         self.values = normalised_values
+
+        return None
+
+    def reorder(self, new_order: List[str]) -> None:
+        """
+        Reorders the variables in the factor scope.
+
+        Args:
+        - new_order (List[str]): the new order of the variables
+
+        Raises:
+        - ValueError: if the new order is not a permutation of the scope
+
+        Returns: None
+        """
+        # Check validity of inputs
+        # 0. Check that the new order is a list
+        if not isinstance(new_order, list):
+            raise ValueError("The new order must be a list")
+
+        # 1. Check that the new order is a permutation of the scope
+        if set(new_order) != set(self.scope):
+            raise ValueError("The new order must be a permutation of the scope")
+
+        # Reorder the values
+        new_indices = [self.scope.index(var) for var in new_order]
+        new_values = np.transpose(self.values, new_indices)
+
+        # Update the scope
+        self.scope = new_order
+        self.values = new_values
 
         return None

@@ -173,3 +173,32 @@ def test__normalise__complex(complex_factor):
     expected_result = Factor(["A", "B", "C"], np.array([[row1, row2], [row3, row4]]))
 
     assert complex_factor == expected_result
+
+# reorder
+## validation
+def test__reorder__invalid_ordering_type(simple_factor):
+    with pytest.raises(ValueError):
+        simple_factor.reorder("ordering")
+
+def test__reorder__invalid_ordering(simple_factor):
+    with pytest.raises(ValueError):
+        simple_factor.reorder(["B", "D"])
+
+## correctness
+def test__reorder__simple(simple_factor):
+    simple_factor.reorder(["B", "A"])
+    expected_result = Factor(["B", "A"], np.array([[0.1, 0.3], [0.2, 0.4]]))
+
+    assert simple_factor == expected_result
+
+def test__reorder__complex(complex_factor):
+    complex_factor.reorder(["C", "A", "B"])
+    expected_result = Factor(
+        ["C", "A", "B"],
+        np.array([
+            [[0.1, 0.3], [0.5, 0.7]],
+            [[0.2, 0.4], [0.6, 0.8]]
+        ])
+    )
+
+    assert complex_factor == expected_result

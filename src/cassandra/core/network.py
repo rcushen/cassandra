@@ -1,7 +1,9 @@
 from .node import Node
 from .factor import Factor
+from .algorithms import sum_product_eliminate
 
 from typing import List
+from functools import reduce
 
 
 class Network:
@@ -194,17 +196,33 @@ class Network:
             )
 
         # Identify the elimination variables
-        elimination_vars = self.get_variable_names().difference(
+        elimination_variables = self.get_variable_names().difference(
             set(Y.keys()).union(set(e.keys()))
         )
 
         # Select an elimination ordering
-        elimination_ordering = list(elimination_vars)
+        elimination_ordering = list(elimination_variables)
 
         # Eliminate variables in the elimination ordering
         factors = self.get_factors()
         for variable_name in elimination_ordering:
             factors = sum_product_eliminate(factors, variable_name)
 
-        prob = 0
+        # Compute a single reduced factor from the resulting factors
+        reduced_factor = reduce(lambda x, y: x.multiply(y), factors)
+
+        # CHECK: That the scope of the factor is exactly the query variables
+        # unioned with the evidence variables
+        assert set(reduced_factor.scope) == set(Y.keys()).union(set(e.keys()))
+
+        # Convert this reduced factor into an appropriate probability distribution
+        desired_ordering = list(e.keys()) + list(Y.keys())
+        reduced_factor.reorder(desired_ordering)
+        reduced_factor.normalise(n_dimensions=len(Y))
+
+        # Return the probabilities of the query variables
+        combined_dictionary = {**e, **Y}
+        indices = [combined_dictionary[var] for var in reduced_factor.scope]
+        prob = reduced_factor.values[tuple(indices)]
+
         return prob

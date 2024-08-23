@@ -133,10 +133,39 @@ def test__query__invalid_vars(simple_nodes):
         network.query({"A": 1, "X": 2}, {"B": 1})
 
 ## correctness
+def test__query__simple_network_1(simple_network):
+    prob = simple_network.query({"A": 1})
+    assert np.isclose(prob, 0.4)
+
+    prob = simple_network.query({"B": 0})
+    assert np.isclose(prob, 0.5)
+
+    prob = simple_network.query({"C": 0})
+    assert np.isclose(prob, 0.524)
+
+def test__query__simple_network_2(simple_network):
+    prob = simple_network.query({"B": 1}, {"A": 0})
+    assert np.isclose(prob, 0.3)
+
+    prob = simple_network.query({"A": 1}, {"B": 0})
+    assert np.isclose(prob, 0.16)
+
+    prob = simple_network.query({"B": 0}, {"C": 1})
+    assert np.isclose(prob, 0.20588235)
+
+def test__query_simple_network_3(simple_network):
+    prob = simple_network.query({"C": 1}, {"A": 0, "B": 1})
+    assert np.isclose(prob, 0.5)
+
+    prob = simple_network.query({"B": 1}, {"A": 0, "C": 1})
+    assert np.isclose(prob, 0.681818)
+
 # def test_sequential_network_1(sequential_network):
 #     prob = sequential_network.query({"D": 1})
+#     print(f"prob: {prob}")
 #     assert np.isclose(prob, 0.5)
 
 # def test_sequential_network_2(sequential_network):
 #     prob = sequential_network.query({"D": 1}, {"A": 0})
 #     assert np.isclose(prob, 0.2)
+

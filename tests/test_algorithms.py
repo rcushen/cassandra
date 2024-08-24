@@ -10,7 +10,6 @@ def test__sum_product_eliminate__invalid_factors():
     with pytest.raises(ValueError):
         sum_product_eliminate(["factor", "factor"], "A")
 
-
 ## correctness
 def test__sum_product_eliminate__case_1_1(simple_factor):
     factors = {simple_factor}
@@ -26,7 +25,6 @@ def test__sum_product_eliminate__case_1_1(simple_factor):
         resulting_single_factor.values, expected_values
     )
 
-
 def test__sum_product_eliminate__case_1_2(simple_factor, complex_factor):
     factors = {simple_factor, complex_factor}
     result = sum_product_eliminate(factors, "A")
@@ -41,7 +39,6 @@ def test__sum_product_eliminate__case_1_2(simple_factor, complex_factor):
         resulting_single_factor.values, expected_values
     )
 
-
 def test__sum_product_eliminate__case_2_1(simple_nodes):
     factors = {node.to_factor() for node in simple_nodes}
     result = sum_product_eliminate(factors, "C")
@@ -54,8 +51,7 @@ def test__sum_product_eliminate__case_2_1(simple_nodes):
     }
     assert result == expected_result
 
-
-def test__sum_product_eliminate__case_2_1(simple_nodes):
+def test__sum_product_eliminate__case_2_2(simple_nodes):
     factors = {node.to_factor() for node in simple_nodes}
     result = sum_product_eliminate(factors, "B")
 
@@ -65,7 +61,6 @@ def test__sum_product_eliminate__case_2_1(simple_nodes):
         Factor(["A", "C"], np.array([[0.78, 0.22], [0.14, 0.86]], dtype=np.float64)),
     }
     assert result == expected_result
-
 
 def test__sum_product_eliminate__case_2_3(simple_nodes):
     factors = {node.to_factor() for node in simple_nodes}

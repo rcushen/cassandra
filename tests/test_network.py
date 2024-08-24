@@ -157,8 +157,11 @@ def test__query_simple_network_3(simple_network):
     prob = simple_network.query({"C": 1}, {"A": 0, "B": 1})
     assert np.isclose(prob, 0.5)
 
-    prob = simple_network.query({"B": 1}, {"A": 0, "C": 1})
-    assert np.isclose(prob, 0.681818)
+    prob = simple_network.query({"B": 1, "C": 1}, {"A": 0})
+    assert np.isclose(prob, 0.15)
+
+    prob = simple_network.query({"A": 1, "B": 0}, {"C": 0})
+    assert np.isclose(prob, 0.0458015)
 
 # def test_sequential_network_1(sequential_network):
 #     prob = sequential_network.query({"D": 1})

@@ -70,6 +70,19 @@ class Network:
 
         self.nodes = {node.variable_name: node for node in nodes}
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the network.
+
+        Args: None
+
+        Raises: None
+
+        Returns: a string representation of the network
+        """
+        return f"Network({self.nodes})"
+
+
     def get_cardinality(self) -> int:
         """
         Returns the number of nodes in the network.

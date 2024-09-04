@@ -11,5 +11,7 @@ description = "A package for modelling digital twins using Bayesian networks"
 package-dir = {"" = "src"}
 
 [tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+python_files = ["unittest_*.py"]
 addopts = "--import-mode=importlib"
-pythonpath = "src"
+pythonpath = ["src"]

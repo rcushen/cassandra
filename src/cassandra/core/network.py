@@ -23,7 +23,8 @@ class Network:
         the network
     - evaluate_joint_probability: evaluates the joint probability of the
         network, given a full suite of evidence variables
-
+    - query: evaluates a conditional probability query on the network, using
+        the variable elimination algorithm
     """
 
     def __init__(self, nodes: List) -> None:
@@ -81,7 +82,6 @@ class Network:
         Returns: a string representation of the network
         """
         return f"Network({self.nodes})"
-
 
     def get_cardinality(self) -> int:
         """

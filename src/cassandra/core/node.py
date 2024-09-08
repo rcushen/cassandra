@@ -41,18 +41,14 @@ class Node:
         """
         Initializes a node for a Bayesian network.
 
-        A node is composed of a variable name, a list of parent nodes, and a
-        conditional probability distribution (CPD) that represents the
-        probability distribution of the node given the states of the parent
-        nodes.
-
         Args:
         - variable_name (str): the name of the variable
         - parent_nodes (List[Node]): a list of parent nodes
         - cpd (np.Array): a (N+1)-dimensional numpy array representing the
             conditional probability distribution associated with the node, where
             each dimension N corresponds to a parent node and the last dimension
-            corresponds to the variable itself.
+            corresponds to the variable itself. This means that the last dimension
+            of the CPD will always sum to 1.
 
         Raises:
         - ValueError: if the CPD is not a numpy array of floats
@@ -117,6 +113,8 @@ class Node:
         Returns the number of possible states of the variable, which is equal to
         the cardinality of the last dimension of the CPD.
 
+        Complexity: O(1), since we are just returning an attribute of the node.
+
         Args: None
 
         Raises: None
@@ -131,6 +129,9 @@ class Node:
         """
         Returns the conditional distribution of the node, given an assignment
         of observed states of all the parent variables.
+
+        Complexity: O(N), where N is the number of parent nodes, since we have
+            to walk the parents a few times.
 
         Args:
         - parent_variable_assignment (dict): a dictionary where the keys are the
@@ -195,6 +196,9 @@ class Node:
         Computes the conditional probability of the variable given an
         assignment of parent variables and a particular state of the variable.
 
+        Complexity: O(N), where N is the number of parent nodes, since we have
+            to walk the parents a few times.
+
         Args:
         - variable_assignment (int): an integer representing the state of the variable
         - parent_variable_assignment: a set of keyword arguments, where the keys are the names of
@@ -224,6 +228,9 @@ class Node:
     def to_factor(self) -> Factor:
         """
         Returns an abstract factor representation of the node.
+
+        Complexity: O(N), where N is the number of parent nodes, since we have
+            to walk the parents.
 
         Args: None
 

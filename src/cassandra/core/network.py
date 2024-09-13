@@ -224,11 +224,12 @@ class Network:
         # Compute a single reduced factor from the resulting factors
         reduced_factor = reduce(lambda x, y: x.multiply(y), factors)
 
-        # CHECK: That the scope of the factor is exactly the query variables
-        # unioned with the evidence variables
+        # Check that the scope of the reduced factor is exactly the query
+        # variables unioned with the evidence variables
         assert set(reduced_factor.scope) == set(Y.keys()).union(set(e.keys()))
 
         # Convert this reduced factor into an appropriate probability distribution
+        # over the query variables
         desired_ordering = list(e.keys()) + list(Y.keys())
         reduced_factor.reorder(desired_ordering)
         reduced_factor.normalise(n_dimensions=len(Y))

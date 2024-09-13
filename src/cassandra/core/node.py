@@ -39,7 +39,7 @@ class Node:
         self, variable_name: str, parent_nodes: List["Node"], cpd: np.ndarray
     ) -> None:
         """
-        Initializes a node for a Bayesian network.
+        Initializes a Node.
 
         Args:
         - variable_name (str): the name of the variable
@@ -105,6 +105,9 @@ class Node:
         self.cpd = cpd
 
     def __repr__(self) -> str:
+        """
+        Overloads the string representation of the node.
+        """
         parent_names = ", ".join(node.variable_name for node in self.parent_nodes)
         return f"Node('{self.variable_name}', parents=[{parent_names}], states={self.get_cardinality()})"
 

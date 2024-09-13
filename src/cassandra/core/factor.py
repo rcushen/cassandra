@@ -5,9 +5,15 @@ from typing import List
 
 class Factor:
     """
-    The general class for a factor, which is represented as an an N-dimensional
-    array of (unnormalised) pseudo-probabilities, with each dimension
-    corresponding to a variable in the factor scope.
+    An abstract class for a factor, for working with Bayesian networks.
+
+    A factor is an an N-dimensional array of (unnormalised)
+    pseudo-probabilities, with each dimension corresponding to a variable in the
+    factor scope.
+
+    Depending on the dimension sums, the factor can represent a joint
+    distribution, a conditional distribution, a marginal distribution, or
+    nothing in particular.
 
     Attributes:
     - scope (List[str]): an ordered list of variable names
@@ -20,13 +26,13 @@ class Factor:
     - multiply: multiplies the factor with another factor and returns a new
         factor
     - sum_out: sums out a variable from the factor and returns a new factor
-    - normalise: normalises the factor
+    - normalise: normalises the factor, by default over the last dimension
     - reorder: reorders the variables in the factor scope
     """
 
     def __init__(self, scope: List[str], values: np.ndarray) -> None:
         """
-        Initializes a factor.
+        Initializes a Factor.
 
         Args:
         - scope (List[str]): a list of variable names
@@ -94,6 +100,9 @@ class Factor:
         """
         Evaluates the factor given a set of assignments to the variables.
 
+        Complexity: O(N), where N is the number of variables in the factor,
+            since we need to walk the scope to find the indices.
+
         Args:
         - assignments (dict[str, int]): a dictionary of variable assignments
 
@@ -132,6 +141,9 @@ class Factor:
         """
         Multiplies two factors together and returns a new, composite factor,
         with a scope that is the union of the scopes of the two factors.
+
+        Complexity: O(K), where K is the number of elements in the combined
+        values array.
 
         Args:
         - other (Factor): the other factor to multiply
@@ -172,6 +184,8 @@ class Factor:
         """
         Sums out a variable from a factor.
 
+        Complexity: O(K), where K is the number of elements in the new values array.
+
         Args:
         - variable (str): the variable to sum out
 
@@ -205,6 +219,8 @@ class Factor:
         """
         Normalises the factor by dividing by the sum of (some of) the values of
         the factor.
+
+        Complexity: O(K), where K is the number of elements in the values array.
 
         Args:
         None
@@ -245,6 +261,8 @@ class Factor:
     def reorder(self, new_order: List[str]) -> None:
         """
         Reorders the variables in the factor scope.
+
+        Complexity: O(N), where N is the number of variables in the factor.
 
         Args:
         - new_order (List[str]): the new order of the variables

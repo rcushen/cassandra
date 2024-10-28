@@ -262,7 +262,7 @@ class Factor:
         """
         Reorders the variables in the factor scope.
 
-        Complexity: O(N), where N is the number of variables in the factor.
+        Complexity: O(N), where N is the number of elements in the values array.
 
         Args:
         - new_order (List[str]): the new order of the variables

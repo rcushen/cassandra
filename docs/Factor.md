@@ -8,8 +8,6 @@ Factors can be multiplied to produce composite factors, and can be 'summed out' 
 
 Sometimes, a factor may correspond directly to the conditional probability or marginal probability distributions of a node in a Bayesian Network. In this case, the values array represents a conditional probability distribution, in which the last dimension corresponds to the node's variable's domain (and sums to one), and the other dimensions correspond to the parent nodes' variables' domains. But in other cases, factors may not correspond to any probability distribution. For example, the unnormalised product of two factors is unlikely to correspond to any probability distribution.
 
-In my implementation, the values table is an N-dimensional array, which highlights the similarity to a probability distribution. However, there is an equivalent representation of the values as a tall 2-dimensional conditional probability table. I just find the N-dimensional array representation more intuitive.
-
 ## Operations
 
 ### Evaluation
@@ -27,3 +25,7 @@ The summing out operation is used to remove a variable from the scope of a facto
 ### Normalisation
 
 In the context of Bayesian networks, factors are often normalised so that the values array represents a conditional probability distribution. This is done by dividing each value by the sum of the values across the last k dimensions, where k is typically one.
+
+## Notes
+
+* In my implementation, the values table is an N-dimensional array, which highlights the similarity to a probability distribution. However, there is an equivalent representation of the values as a tall 2-dimensional conditional probability table. I just find the N-dimensional array representation more intuitive.

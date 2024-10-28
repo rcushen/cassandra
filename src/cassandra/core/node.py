@@ -8,17 +8,16 @@ from typing import List
 
 class Node:
     """
-    A node in a Bayesian network.
+    A discrete node in a Bayesian network.
 
-    A node is a (discrete) variable in a Bayesian network, which is associated
-    with a conditional probability distribution (CPD) that represents the
-    probability distribution of the variable given the states of the parent
-    nodes.
+    A node is a variable in a Bayesian network which is associated with a
+    conditional probability distribution (CPD) that represents the probability
+    distribution of the variable given the states of the parent nodes.
 
     Attributes:
     - variable_name (str): the name of the associated variable
-    - parent_nodes (List[Node]): a ordered list of parent nodes, aligned with the
-        dimensions of the CPD
+    - parent_nodes (List[Node]): a ordered list of parent nodes, aligned with
+        the dimensions of the CPD
     - cpd (np.Array): an (N+1)-dimensional numpy array representing the
         conditional probability distribution associated with the node, where
         each dimension N corresponds to a parent node and the last dimension
@@ -27,10 +26,11 @@ class Node:
 
     Methods:
     - get_cardinality: returns the number of possible states of the variable
-    - get_conditional_distribution: returns the conditional distribution of the node,
-        given an assignment of observed states of all the parent variables
-    - compute_conditional_probability: computes the conditional probability of the variable,
-        given an assignment of parent variables and a particular state of the variable
+    - get_conditional_distribution: returns the conditional distribution of the
+        node, given an assignment of observed states of all the parent variables
+    - compute_conditional_probability: computes the conditional probability of
+        the variable, given an assignment of parent variables and a particular
+        state of the variable
     - to_factor: returns an abstract factor representation of the node
 
     """

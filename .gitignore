@@ -17,3 +17,6 @@
 
 # Environment variables
 .env
+
+# Artifact files
+*.png

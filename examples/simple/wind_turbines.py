@@ -1,7 +1,8 @@
-from cassandra import Node, Network
-
 import numpy as np
 
+from cassandra import Node, Network
+
+# Define all the nodes
 wind_speed_cpd = np.array([0.3, 0.4, 0.3])
 wind_speed = Node(
     variable_name="wind_speed",
@@ -32,12 +33,14 @@ power = Node(
     cpd=power_cpd
 )
 
+# Define the network
 turbine = Network([wind_speed, temperature, torque, power])
 
+# Run some sample queries
 print("What is the probability of maximal power, given low wind speed and maximal temperature?")
 inference = turbine.query({"power": 7}, {"wind_speed": 0, "temperature": 9})
-print(inference)
+print(f'-> {inference}')
 
 print("What is the probability of low torque, given maximal wind speed and low temperature?")
 inference = turbine.query({"torque": 0}, {"wind_speed": 2, "temperature": 0})
-print(inference)
+print(f'-> {inference}')
